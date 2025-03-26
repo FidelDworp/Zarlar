@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zarlardinge schuur</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    body {
+      background-image: url("http://www.itronix.be/Zarlar/BG.jpeg");
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    button {
+        background-color: black;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 5px;
+        font-size: 10px;
+      }
+      button.on {
+        background-color: red;
+      }
+      h1 {
+			font-size: 18px;
+			font-family: Arial, sans-serif;
+			color: #333;
+  		}
+    </style>
+  </head>
+  <body>
+
+<h1>BandB</h1>
+    <button id="bandb">BandB licht</button>
+    <button id="buitentrap">Buitentrap</button>
+
+<h1>Badkamer</h1>
+    <button id="badkamer">Badkamer</button>
+    <button id="leeslampjes">Leeslampjes</button>
+
+<h1>Inkom</h1>
+    <button id="inkom">Inkom</button>
+    <button id="dressing">Dressing</button>
+    <button id="trap">Trap</button>
+    <button id="traprood">TrapROOD</button>
+    <button id="trapgroen">TrapGROEN</button>
+    <button id="trapblauw">TrapBLAUW</button>
+
+<h1>Keuken</h1>
+    <button id="spots">Keuken spots, strips</button>
+
+<h1>Wasplaats</h1>
+    <button id="wasplaats">Wasplaats</button>
+    <button id="toilet">Toilet,Vestiaire</button>
+
+<h1>Eetplaats</h1>
+    <button id="ramenlow">Ramen LOW</button>
+    <button id="ramenmed">Ramen MED</button>
+    <button id="ramenhi">Ramen HI</button>
+    <button id="tafel">Tafel</button>
+    <button id="bib">Bib</button>
+
+<h1>Slaapkamer</h1>
+    <button id="buro">Buro</button>
+    <button id="bed">Bed</button>
+
+<h1>Buitenverlichting</h1>
+    <button id="S">Terras</button>
+    <button id="W2">Veldkant</button>
+    <button id="W1">Voordeur</button>
+
+<h1>Sunlight</h1>
+    <button id="auto">AUTO</button>
+    <button id="day">Force DAY</button>
+    <button id="night">Force NIGHT</button>
+
+<h1>HVAC</h1>
+    <button id="home">HOME mode</button>
+    <button id="out">OUT mode</button>
+    <button id="sch">ECO => SCHUUR</button>
+    <button id="won">ECO => WONING</button>
+
+    <script>
+
+        function toggleLight(deviceId, command, parameter) {
+        const url = `https://api.particle.io/v1/devices/${deviceId}/${command}`;
+        const token = 'cbaaee22f00445259e3856a21f63ba6f9635a093'; // your access token
+        const data = `access_token=${token}&args=${parameter}`;
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: data
+        });
+      }
+
+      const controllers = [
+        {
+          name: 'BandB',
+          deviceId: '30002c000547343233323032',
+          command: 'manual',
+          buttons: [
+            'bandb',
+            'buitentrap'
+          ]
+        },
+        {
+          name: 'Badkamer',
+          deviceId: '5600420005504b464d323520',
+          command: 'manual',
+          buttons: [
+            'badkamer',
+            'leeslampjes'
+          ]
+        },
+        {
+          name: 'Inkom',
+          deviceId: '420035000e47343432313031',
+          command: 'manual',
+          buttons: [
+            'inkom',
+            'dressing',
+            'trap',
+            'traprood',
+            'trapgroen',
+            'trapblauw'
+          ]
+        },
+        {
+          name: 'Keuken',
+          deviceId: '310017001647373335333438',
+          command: 'manual',
+          buttons: [
+            'spots'
+          ]
+        },
+        {
+          name: 'Wasplaats',
+          deviceId: '33004f000e504b464d323520',
+          command: 'manual',
+          buttons: [
+            'wasplaats',
+            'toilet'
+          ]
+        },
+        {
+          name: 'Eetplaats',
+          deviceId: '210042000b47343432313031',
+          command: 'manual',
+          buttons: [
+            'ramenlow',
+            'ramenmed',
+            'ramenhi',
+            'tafel',
+            'bib'
+          ]
+        },
+        {
+          name: 'Slaapkamer',
+          deviceId: '210042000b47343432313031',
+          command: 'manual',
+          buttons: [
+            'buro',
+            'bed'
+          ]
+        },
+        {
+          name: 'Buitenverlichting',
+          deviceId: '2d0032001247333438353733',
+          command: 'manual',
+          buttons: [
+            'S',
+            'W2',
+            'W1'
+          ]
+        },
+        {
+          name: 'Outside',
+          deviceId: '390028001147343339383037',
+          command: 'manual',
+          buttons: [
+            'auto',
+            'day',
+            'night'
+          ]
+        },
+        {
+          name: 'HVAC',
+          deviceId: '3e003f001447343338333633',
+          command: 'manual',
+          buttons: [
+            'home',
+            'out',
+            'sch',
+            'won'
+          ]
+        }
+      ];
+
+      controllers.forEach(controller => {
+        const buttons = controller.buttons.map(id => document.getElementById(id));
+        buttons.forEach(button => {
+          const lightName = button.id;
+          const deviceId = controller.deviceId;
+          const command = controller.command;
+          const onParameter = `${lightName}on`;
+          const offParameter = `${lightName}off`;
+          let isOn = false;
+          button.addEventListener('click', () => {
+            isOn = !isOn;
+            button.classList.toggle('on', isOn);
+            const parameter = isOn ? onParameter : offParameter;
+            toggleLight(deviceId, command, parameter);
+          });
+        });
+      });
+
+    </script>
+  </body>
+</html>
