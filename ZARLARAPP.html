@@ -84,7 +84,7 @@
 
         function toggleLight(deviceId, command, parameter) {
         const url = `https://api.particle.io/v1/devices/${deviceId}/${command}`;
-        const token = 'cbaaee22f00445259e3856a21f63ba6f9635a093'; // your access token
+        const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b'; // your access token
         const data = `access_token=${token}&args=${parameter}`;
         fetch(url, {
           method: 'POST',
