@@ -1,116 +1,127 @@
-<xaiArtifact artifact_id="dee62a80-01be-41e3-ae13-6deefe25d687" artifact_version_id="4a400196-b6e6-4d06-8219-edf94cb853bd" title="keuken_status.html" contentType="text/html">
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Zarlardinge Schuur - Keuken Status</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            background-image: url("http://www.itronix.be/Zarlar/BG.jpeg");
-            background-size: cover;
-            background-repeat: no-repeat;
-            font-family: Arial, sans-serif;
-            color: #333;
+<xaiArtifact artifact_id="dee62a80-01be-41e3-ae13-6deefe25d687" artifact_version_id="ee089a8d-706f-42d6-9d54-8ab725ef7c14" title="keuken_status.html" contentType="text/html">
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Zarlardinge Schuur - Keuken Status</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+                background-image: url("BG.jpg");
+                background-size: cover;
+                background-repeat: no-repeat;
+                font-family: Arial, sans-serif;
+                color: #333;
+            }
+            h1 {
+                font-size: 18px;
+                margin: 20px 0 10px 20px;
+            }
+            #status {
+                margin: 20px;
+                padding: 15px;
+                background-color: rgba(255, 255, 255, 0.8);
+                border-radius: 8px;
+                max-width: 300px;
+            }
+            .status-item {
+                margin: 5px 0;
+                font-size: 14px;
+            }
+            .label {
+                font-weight: bold;
+                margin-right: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Status - R4-KEUK</h1>
+        <div id="status">
+            <p class="status-item"><span class="label">a</span>= <span id="status-a">Onbekend</span></p>
+            <p class="status-item"><span class="label">b</span>= <span id="status-b">Onbekend</span></p>
+            <p class="status-item"><span class="label">c</span>= <span id="status-c">Onbekend</span></p>
+            <p class="status-item"><span class="label">d</span>= <span id="status-d">Onbekend</span></p>
+            <p class="status-item"><span class="label">e</span>= <span id="status-e">Onbekend</span></p>
+            <p class="status-item"><span class="label">f</span>= <span id="status-f">Onbekend</span></p>
+            <p class="status-item"><span class="label">g</span>= <span id="status-g">Onbekend</span></p>
+            <p class="status-item"><span class="label">h</span>= <span id="status-h">Onbekend</span></p>
+            <p class="status-item"><span class="label">i</span>= <span id="status-i">Onbekend</span></p>
+            <p class="status-item"><span class="label">j</span>= <span id="status-j">Onbekend</span></p>
+            <p class="status-item"><span class="label">k</span>= <span id="status-k">Onbekend</span></p>
+            <p class="status-item"><span class="label">l</span>= <span id="status-l">Onbekend</span></p>
+            <p class="status-item"><span class="label">m</span>= <span id="status-m">Onbekend</span></p>
+            <p class="status-item"><span class="label">n</span>= <span id="status-n">Onbekend</span></p>
+            <p class="status-item"><span class="label">o</span>= <span id="status-o">Onbekend</span></p>
+            <p class="status-item"><span class="label">p</span>= <span id="status-p">Onbekend</span></p>
+            <p class="status-item"><span class="label">q</span>= <span id="status-q">Onbekend</span></p>
+            <p class="status-item"><span class="label">r</span>= <span id="status-r">Onbekend</span></p>
+            <p class="status-item"><span class="label">s</span>= <span id="status-s">Onbekend</span></p>
+            <p class="status-item"><span class="label">t</span>= <span id="status-t">Onbekend</span></p>
+            <p class="status-item"><span class="label">u</span>= <span id="status-u">Onbekend</span></p>
+            <p class="status-item"><span class="label">v</span>= <span id="status-v">Onbekend</span></p>
+            <p class="status-item"><span class="label">w</span>= <span id="status-w">Onbekend</span></p>
+            <p class="status-item"><span class="label">x</span>= <span id="status-x">Onbekend</span></p>
+        </div>
+    <script>
+        const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+        const deviceId = '310017001647373335333438'; // R4-KEUK
+    
+        // Functie om de status op de pagina bij te werken
+        function updateStatus(data) {
+            document.getElementById('status-a').textContent = data.a !== undefined ? data.a : 'Onbekend';
+            document.getElementById('status-b').textContent = data.b !== undefined ? data.b : 'Onbekend';
+            document.getElementById('status-c').textContent = data.c !== undefined ? data.c : 'Onbekend';
+            document.getElementById('status-d').textContent = data.d !== undefined ? data.d : 'Onbekend';
+            document.getElementById('status-e').textContent = data.e !== undefined ? data.e : 'Onbekend';
+            document.getElementById('status-f').textContent = data.f !== undefined ? data.f : 'Onbekend';
+            document.getElementById('status-g').textContent = data.g !== undefined ? data.g : 'Onbekend';
+            document.getElementById('status-h').textContent = data.h !== undefined ? data.h : 'Onbekend';
+            document.getElementById('status-i').textContent = data.i !== undefined ? data.i : 'Onbekend';
+            document.getElementById('status-j').textContent = data.j !== undefined ? data.j : 'Onbekend';
+            document.getElementById('status-k').textContent = data.k !== undefined ? data.k : 'Onbekend';
+            document.getElementById('status-l').textContent = data.l !== undefined ? data.l : 'Onbekend';
+            document.getElementById('status-m').textContent = data.m !== undefined ? data.m : 'Onbekend';
+            document.getElementById('status-n').textContent = data.n !== undefined ? data.n : 'Onbekend';
+            document.getElementById('status-o').textContent = data.o !== undefined ? data.o : 'Onbekend';
+            document.getElementById('status-p').textContent = data.p !== undefined ? data.p : 'Onbekend';
+            document.getElementById('status-q').textContent = data.q !== undefined ? data.q : 'Onbekend';
+            document.getElementById('status-r').textContent = data.r !== undefined ? data.r : 'Onbekend';
+            document.getElementById('status-s').textContent = data.s !== undefined ? data.s : 'Onbekend';
+            document.getElementById('status-t').textContent = data.t !== undefined ? data.t : 'Onbekend';
+            document.getElementById('status-u').textContent = data.u !== undefined ? data.u : 'Onbekend';
+            document.getElementById('status-v').textContent = data.v !== undefined ? data.v : 'Onbekend';
+            document.getElementById('status-w').textContent = data.w !== undefined ? data.w : 'Onbekend';
+            document.getElementById('status-x').textContent = data.x !== undefined ? data.x : 'Onbekend';
         }
-        h1 {
-            font-size: 18px;
-            margin: 20px 0 10px 20px;
+    
+        // Functie om de variabele op te halen via een directe fetch-aanroep
+        function fetchStatus() {
+            const url = `https://api.particle.io/v1/devices/${deviceId}/JSON_status?access_token=${token}`;
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Netwerkfout: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API-respons:', data); // Log de ruwe respons voor debugging
+                    if (data && data.result) {
+                        const jsonData = JSON.parse(data.result); // Parse de JSON-string
+                        updateStatus(jsonData); // Werk de status bij
+                    } else {
+                        throw new Error('Ongeldige respons: geen "result" veld');
+                    }
+                })
+                .catch(err => console.error('Fout bij ophalen van variabele:', err));
         }
-        #status {
-            margin: 20px;
-            padding: 15px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            max-width: 300px;
-        }
-        .status-item {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-        .label {
-            font-weight: bold;
-            margin-right: 5px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Status - R4-KEUK</h1>
-    <div id="status">
-        <p class="status-item"><span class="label">a</span>= <span id="status-a">Onbekend</span></p>
-        <p class="status-item"><span class="label">b</span>= <span id="status-b">Onbekend</span></p>
-        <p class="status-item"><span class="label">c</span>= <span id="status-c">Onbekend</span></p>
-        <p class="status-item"><span class="label">d</span>= <span id="status-d">Onbekend</span></p>
-        <p class="status-item"><span class="label">e</span>= <span id="status-e">Onbekend</span></p>
-        <p class="status-item"><span class="label">f</span>= <span id="status-f">Onbekend</span></p>
-        <p class="status-item"><span class="label">g</span>= <span id="status-g">Onbekend</span></p>
-        <p class="status-item"><span class="label">h</span>= <span id="status-h">Onbekend</span></p>
-        <p class="status-item"><span class="label">i</span>= <span id="status-i">Onbekend</span></p>
-        <p class="status-item"><span class="label">j</span>= <span id="status-j">Onbekend</span></p>
-        <p class="status-item"><span class="label">k</span>= <span id="status-k">Onbekend</span></p>
-        <p class="status-item"><span class="label">l</span>= <span id="status-l">Onbekend</span></p>
-        <p class="status-item"><span class="label">m</span>= <span id="status-m">Onbekend</span></p>
-        <p class="status-item"><span class="label">n</span>= <span id="status-n">Onbekend</span></p>
-        <p class="status-item"><span class="label">o</span>= <span id="status-o">Onbekend</span></p>
-        <p class="status-item"><span class="label">p</span>= <span id="status-p">Onbekend</span></p>
-        <p class="status-item"><span class="label">q</span>= <span id="status-q">Onbekend</span></p>
-        <p class="status-item"><span class="label">r</span>= <span id="status-r">Onbekend</span></p>
-        <p class="status-item"><span class="label">s</span>= <span id="status-s">Onbekend</span></p>
-        <p class="status-item"><span class="label">t</span>= <span id="status-t">Onbekend</span></p>
-        <p class="status-item"><span class="label">u</span>= <span id="status-u">Onbekend</span></p>
-        <p class="status-item"><span class="label">v</span>= <span id="status-v">Onbekend</span></p>
-        <p class="status-item"><span class="label">w</span>= <span id="status-w">Onbekend</span></p>
-        <p class="status-item"><span class="label">x</span>= <span id="status-x">Onbekend</span></p>
-    </div>
-<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
-<script>
-    // Particle API initialiseren
-    const particle = new Particle();
-    const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
-    const deviceId = '310017001647373335333438'; // R4-KEUK
-
-    // Functie om de status op de pagina bij te werken
-    function updateStatus(data) {
-        document.getElementById('status-a').textContent = data.a !== undefined ? data.a : 'Onbekend';
-        document.getElementById('status-b').textContent = data.b !== undefined ? data.b : 'Onbekend';
-        document.getElementById('status-c').textContent = data.c !== undefined ? data.c : 'Onbekend';
-        document.getElementById('status-d').textContent = data.d !== undefined ? data.d : 'Onbekend';
-        document.getElementById('status-e').textContent = data.e !== undefined ? data.e : 'Onbekend';
-        document.getElementById('status-f').textContent = data.f !== undefined ? data.f : 'Onbekend';
-        document.getElementById('status-g').textContent = data.g !== undefined ? data.g : 'Onbekend';
-        document.getElementById('status-h').textContent = data.h !== undefined ? data.h : 'Onbekend';
-        document.getElementById('status-i').textContent = data.i !== undefined ? data.i : 'Onbekend';
-        document.getElementById('status-j').textContent = data.j !== undefined ? data.j : 'Onbekend';
-        document.getElementById('status-k').textContent = data.k !== undefined ? data.k : 'Onbekend';
-        document.getElementById('status-l').textContent = data.l !== undefined ? data.l : 'Onbekend';
-        document.getElementById('status-m').textContent = data.m !== undefined ? data.m : 'Onbekend';
-        document.getElementById('status-n').textContent = data.n !== undefined ? data.n : 'Onbekend';
-        document.getElementById('status-o').textContent = data.o !== undefined ? data.o : 'Onbekend';
-        document.getElementById('status-p').textContent = data.p !== undefined ? data.p : 'Onbekend';
-        document.getElementById('status-q').textContent = data.q !== undefined ? data.q : 'Onbekend';
-        document.getElementById('status-r').textContent = data.r !== undefined ? data.r : 'Onbekend';
-        document.getElementById('status-s').textContent = data.s !== undefined ? data.s : 'Onbekend';
-        document.getElementById('status-t').textContent = data.t !== undefined ? data.t : 'Onbekend';
-        document.getElementById('status-u').textContent = data.u !== undefined ? data.u : 'Onbekend';
-        document.getElementById('status-v').textContent = data.v !== undefined ? data.v : 'Onbekend';
-        document.getElementById('status-w').textContent = data.w !== undefined ? data.w : 'Onbekend';
-        document.getElementById('status-x').textContent = data.x !== undefined ? data.x : 'Onbekend';
-    }
-
-    // Functie om de variabele op te halen
-    function fetchStatus() {
-        particle.getVariable({ deviceId: deviceId, name: 'JSON_status', auth: token })
-            .then(data => {
-                const jsonData = JSON.parse(data.data.result); // Parse de JSON-string
-                updateStatus(jsonData); // Werk de status bij
-            })
-            .catch(err => console.error('Fout bij ophalen van variabele:', err));
-    }
-
-    // Haal de status op bij laden en ververs elke 5 seconden
-    fetchStatus(); // Initiële ophaling
-    setInterval(fetchStatus, 5000); // Ververs elke 5 seconden
-</script>
-
-</body>
-</html>
-</xaiArtifact>
+    
+        // Haal de status op bij laden en ververs elke 5 seconden
+        fetchStatus(); // Initiële ophaling
+        setInterval(fetchStatus, 5000); // Ververs elke 5 seconden
+    </script>
+    
+    </body>
+    </html>
+    </xaiArtifact>
+    
+    
