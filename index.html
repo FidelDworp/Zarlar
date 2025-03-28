@@ -1,43 +1,94 @@
-<xaiArtifact artifact_id="bec3e043-5cdf-479c-a0dd-157c83f3da56" artifact_version_id="7f3d9a1c-74a1-4489-8c44-91d18841f857" title="index.html" contentType="text/html">
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Zarlardinge Schuur</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 20px;
-            }
-            h1 {
-                font-size: 18px;
-            }
-            ul {
-                list-style-type: none;
-                padding: 0;
-            }
-            li {
-                margin: 10px 0;
-            }
-            a {
-                color: #007bff;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Zarlardinge Schuur</h1>
-        <ul>
-            <li><a href="ZARLARAPP.html">Verlichting</a></li>
-            <li><a href="Rooms_Overview.html">Roomstatus</a></li>
-            <li><a href="S-ECO-Solar.html">ECO-Solar</a></li>
-            <li><a href="S-OUTSIDE.html">S-OUTSIDE (SUN)</a></li>
-        </ul>
-    </body>
-    </html>
-    </xaiArtifact>
-    
-    
+<xaiArtifact artifact_id="bec3e043-5cdf-479c-a0dd-157c83f3da56" artifact_version_id="35870c91-3df2-43a9-8825-1f19522ec991" title="index.html" contentType="text/html">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zarlardinge Schuur</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 20px;
+            background-image: url("BG.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .menu-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+        }
+        tr {
+            background-color: #f5f5f5; /* Standaard achtergrondkleur (lichtgrijs) */
+            transition: background-color 0.3s ease; /* Soepele overgang voor hover/selectie */
+        }
+        tr:hover {
+            background-color: #e3f2fd; /* Hover-kleur (lichtblauw) */
+            cursor: pointer;
+        }
+        tr.selected {
+            background-color: #90caf9; /* Selectie-kleur (donkerder blauw) */
+        }
+        td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            display: block; /* Zorgt ervoor dat de link de hele cel vult */
+        }
+        a:hover {
+            text-decoration: none; /* Geen onderstreping bij hover, want de rij verandert al van kleur */
+        }
+    </style>
+</head>
+<body>
+    <h1>Zarlardinge Schuur</h1>
+    <div class="menu-container">
+        <table id="menu-table">
+            <tbody>
+                <tr>
+                    <td><a href="ZARLARAPP.html">Verlichting</a></td>
+                </tr>
+                <tr>
+                    <td><a href="Rooms_Overview.html">Roomstatus</a></td>
+                </tr>
+                <tr>
+                    <td><a href="S-ECO-Solar.html">ECO-Solar</a></td>
+                </tr>
+                <tr>
+                    <td><a href="S-OUTSIDE.html">S-OUTSIDE (SUN)</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+<script>
+    // Selecteer alle rijen in de tabel
+    const rows = document.querySelectorAll('#menu-table tr');
+
+    // Voeg een klik-eventlistener toe aan elke rij
+    rows.forEach(row => {
+        row.addEventListener('click', () => {
+            // Verwijder de 'selected' klasse van alle rijen
+            rows.forEach(r => r.classList.remove('selected'));
+            // Voeg de 'selected' klasse toe aan de geklikte rij
+            row.classList.add('selected');
+        });
+    });
+</script>
+
+</body>
+</html>
+</xaiArtifact>
