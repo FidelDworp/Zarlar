@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="19eb3653-d8b6-4837-b25e-6096b42cc4d3" title="S-HVAC.html" contentType="text/html">
+<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="2ceeeb3f-b073-4a1a-88bd-6ce69ec9377b" title="S-HVAC.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -69,17 +69,10 @@
             gap: 20px;
         }
         .boiler-info {
-            font-size: 14px;
+            font-size: 18pt; /* Groter formaat */
+            font-weight: bold; /* Vet */
             text-align: center;
             flex: 1;
-        }
-        .status-container {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            padding: 15px;
-            max-width: 400px;
-            margin: 0 auto;
-            margin-bottom: 20px;
         }
         .heating-container {
             background-color: rgba(255, 255, 255, 0.8);
@@ -93,6 +86,14 @@
             font-size: 18pt;
             text-align: center;
             margin-bottom: 10px;
+        }
+        .status-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+            margin-bottom: 20px;
         }
         table {
             width: 100%;
@@ -111,7 +112,7 @@
             margin-right: 5px;
         }
         .relay-on {
-            background-color: #ff0000; /* Rood als de relais aan is (waarde 1) */
+            background-color: #ff0000;
             color: #fff;
         }
         .button-container {
@@ -165,23 +166,13 @@
 
 <div class="boiler-info-container">
     <div class="boiler-info">
-        <p><strong>WONING</strong></p>
         <p>Tgem: <span id="woning-avg">Onbekend</span> °C</p>
         <p>EQtot: <span id="woning-energy">Onbekend</span> kWh</p>
     </div>
     <div class="boiler-info">
-        <p><strong>SCHUUR</strong></p>
         <p>Tgem: <span id="schuur-avg">Onbekend</span> °C</p>
         <p>EQtot: <span id="schuur-energy">Onbekend</span> kWh</p>
     </div>
-</div>
-
-<div class="status-container">
-    <table id="hvac-table">
-        <tbody>
-            <!-- De tabel wordt dynamisch gevuld door JavaScript -->
-        </tbody>
-    </table>
 </div>
 
 <div class="heating-container">
@@ -189,7 +180,7 @@
     <table id="heating-table">
         <tbody>
             <tr>
-                <td>B&amp;B</td>
+                <td>B&B</td>
                 <td id="relay-R1">R1: Onbekend</td>
                 <td id="value-BB">BB: Onbekend%</td>
             </tr>
@@ -227,6 +218,14 @@
     </table>
 </div>
 
+<div class="status-container">
+    <table id="hvac-table">
+        <tbody>
+            <!-- De tabel wordt dynamisch gevuld door JavaScript -->
+        </tbody>
+    </table>
+</div>
+
 <div class="button-container">
     <button class="update-button" onclick="fetchStatus()">Update!</button>
     <a href="index.html" class="home-button">Home</a>
@@ -254,8 +253,8 @@
 
     // Functie om de achtergrondkleur te bepalen voor percentage (0% = wit, 100% = zwart)
     function getColorForPercentage(value) {
-        const clampedValue = Math.max(0, Math.min(100, value)); // Beperk waarde tussen 0 en 100
-        const intensity = 255 - (clampedValue * 2.55); // Schaal van 255 (wit) naar 0 (zwart)
+        const clampedValue = Math.max(0, Math.min(100, value));
+        const intensity = 255 - (clampedValue * 2.55);
         return `rgb(${intensity}, ${intensity}, ${intensity})`;
     }
 
@@ -313,7 +312,7 @@
                 valueCell.textContent = `${places[index]}: ${placeValue !== undefined ? placeValue : 'Onbekend'}%`;
                 if (placeValue !== undefined) {
                     valueCell.style.backgroundColor = getColorForPercentage(placeValue);
-                    valueCell.style.color = placeValue > 50 ? '#fff' : '#000'; // Witte tekst bij donkere achtergrond
+                    valueCell.style.color = placeValue > 50 ? '#fff' : '#000';
                 } else {
                     valueCell.style.backgroundColor = '#fff';
                     valueCell.style.color = '#000';
@@ -394,3 +393,4 @@
 </body>
 </html>
 </xaiArtifact>
+
