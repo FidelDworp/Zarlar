@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="0251f8bd-74b4-4481-9c55-c4adeeb91a84" artifact_version_id="5a625a97-68f7-4a48-9145-98b7ba20e696" title="overview.html" contentType="text/html">
+<xaiArtifact artifact_id="0251f8bd-74b4-4481-9c55-c4adeeb91a84" artifact_version_id="a83802a0-0c0a-4a68-b64d-c67be7fbddda" title="overview.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -47,6 +47,19 @@
         .controller-name {
             font-weight: bold;
             text-align: left;
+        }
+        .update-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .update-button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -276,6 +289,7 @@
             </tbody>
         </table>
     </div>
+    <button class="update-button" onclick="fetchAllStatuses()">Update!</button>
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
     // Particle API initialiseren
@@ -322,16 +336,15 @@
             });
     }
 
-    // Haal de status op voor alle controllers en ververs elke 5 seconden
+    // Haal de status op voor alle controllers
     function fetchAllStatuses() {
         controllers.forEach(controller => {
             fetchStatus(controller);
         });
     }
 
-    // Start de initiële ophaling en stel een interval in
+    // Start de initiële ophaling bij het laden van de pagina
     fetchAllStatuses();
-    setInterval(fetchAllStatuses, 5000);
 </script>
 
 </body>
