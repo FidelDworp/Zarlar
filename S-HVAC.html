@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="d92cddb3-e33b-477d-94bb-849be4acae2c" title="S-HVAC.html" contentType="text/html">
+<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="3ea1e4d9-ab08-4302-b91c-79430cc70cfd" title="S-HVAC.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -44,9 +44,18 @@
             flex: 1;
             border-bottom: 1px solid #333;
             box-sizing: border-box;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .boiler-layer:last-child {
             border-bottom: none;
+        }
+        .boiler-layer span {
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5); /* Voor betere leesbaarheid */
         }
         .boiler-info {
             margin-top: 10px;
@@ -104,12 +113,12 @@
     <div class="boiler">
         <div class="boiler-name">WONING</div>
         <div class="boiler-layers" id="woning-boiler">
-            <div class="boiler-layer" id="woning-layer-1"></div>
-            <div class="boiler-layer" id="woning-layer-2"></div>
-            <div class="boiler-layer" id="woning-layer-3"></div>
-            <div class="boiler-layer" id="woning-layer-4"></div>
-            <div class="boiler-layer" id="woning-layer-5"></div>
-            <div class="boiler-layer" id="woning-layer-6"></div>
+            <div class="boiler-layer" id="woning-layer-1"><span id="woning-temp-1">Onbekend</span></div>
+            <div class="boiler-layer" id="woning-layer-2"><span id="woning-temp-2">Onbekend</span></div>
+            <div class="boiler-layer" id="woning-layer-3"><span id="woning-temp-3">Onbekend</span></div>
+            <div class="boiler-layer" id="woning-layer-4"><span id="woning-temp-4">Onbekend</span></div>
+            <div class="boiler-layer" id="woning-layer-5"><span id="woning-temp-5">Onbekend</span></div>
+            <div class="boiler-layer" id="woning-layer-6"><span id="woning-temp-6">Onbekend</span></div>
         </div>
         <div class="boiler-info">
             <p>Gemiddelde: <span id="woning-avg">Onbekend</span> °C</p>
@@ -119,12 +128,12 @@
     <div class="boiler">
         <div class="boiler-name">SCHUUR</div>
         <div class="boiler-layers" id="schuur-boiler">
-            <div class="boiler-layer" id="schuur-layer-1"></div>
-            <div class="boiler-layer" id="schuur-layer-2"></div>
-            <div class="boiler-layer" id="schuur-layer-3"></div>
-            <div class="boiler-layer" id="schuur-layer-4"></div>
-            <div class="boiler-layer" id="schuur-layer-5"></div>
-            <div class="boiler-layer" id="schuur-layer-6"></div>
+            <div class="boiler-layer" id="schuur-layer-1"><span id="schuur-temp-1">Onbekend</span></div>
+            <div class="boiler-layer" id="schuur-layer-2"><span id="schuur-temp-2">Onbekend</span></div>
+            <div class="boiler-layer" id="schuur-layer-3"><span id="schuur-temp-3">Onbekend</span></div>
+            <div class="boiler-layer" id="schuur-layer-4"><span id="schuur-temp-4">Onbekend</span></div>
+            <div class="boiler-layer" id="schuur-layer-5"><span id="schuur-temp-5">Onbekend</span></div>
+            <div class="boiler-layer" id="schuur-layer-6"><span id="schuur-temp-6">Onbekend</span></div>
         </div>
         <div class="boiler-info">
             <p>Gemiddelde: <span id="schuur-avg">Onbekend</span> °C</p>
@@ -152,7 +161,7 @@
     // Particle API initialiseren
     const particle = new Particle();
     const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
-    const deviceId = '290044000147353138383138'; // S-HVAC
+    const deviceId = '290044000147353138383138'; // Correct S-HVAC device ID
 
     // Functie om temperatuur om te zetten naar een kleur (15°C = lichtblauw, 40°C = fel rood)
     function getColorForTemperature(temp) {
@@ -180,7 +189,9 @@
             ];
             woningTemps.forEach((temp, index) => {
                 const layer = document.getElementById(`woning-layer-${index + 1}`);
+                const tempDisplay = document.getElementById(`woning-temp-${index + 1}`);
                 layer.style.backgroundColor = getColorForTemperature(temp);
+                tempDisplay.textContent = temp !== undefined ? `${temp.toFixed(1)}°C` : 'Onbekend';
             });
             document.getElementById('woning-avg').textContent = data['KSAv'] !== undefined ? data['KSAv'].toFixed(1) : 'Onbekend';
             document.getElementById('woning-energy').textContent = data['KSQtot'] !== undefined ? data['KSQtot'].toFixed(3) : 'Onbekend';
@@ -193,7 +204,9 @@
             ];
             schuurTemps.forEach((temp, index) => {
                 const layer = document.getElementById(`schuur-layer-${index + 1}`);
+                const tempDisplay = document.getElementById(`schuur-temp-${index + 1}`);
                 layer.style.backgroundColor = getColorForTemperature(temp);
+                tempDisplay.textContent = temp !== undefined ? `${temp.toFixed(1)}°C` : 'Onbekend';
             });
             document.getElementById('schuur-avg').textContent = data['KWAv'] !== undefined ? data['KWAv'].toFixed(1) : 'Onbekend';
             document.getElementById('schuur-energy').textContent = data['KWQtot'] !== undefined ? data['KWQtot'].toFixed(3) : 'Onbekend';
@@ -201,7 +214,9 @@
             // Als er geen data is, reset de boilers
             for (let i = 1; i <= 6; i++) {
                 document.getElementById(`woning-layer-${i}`).style.backgroundColor = '#ccc';
+                document.getElementById(`woning-temp-${i}`).textContent = 'Onbekend';
                 document.getElementById(`schuur-layer-${i}`).style.backgroundColor = '#ccc';
+                document.getElementById(`schuur-temp-${i}`).textContent = 'Onbekend';
             }
             document.getElementById('woning-avg').textContent = 'Onbekend';
             document.getElementById('woning-energy').textContent = 'Onbekend';
@@ -254,4 +269,3 @@
 </body>
 </html>
 </xaiArtifact>
-
