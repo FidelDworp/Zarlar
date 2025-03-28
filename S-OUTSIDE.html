@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="92469cc1-e94e-4e21-9312-28957ae6091d" artifact_version_id="0886ae03-9b7f-4158-8707-650ce6fa69b1" title="S-OUTSIDE.html" contentType="text/html">
+<xaiArtifact artifact_id="92469cc1-e94e-4e21-9312-28957ae6091d" artifact_version_id="81d49527-e3ff-4edd-9ce6-484fd6832162" title="S-OUTSIDE.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,8 +31,13 @@
             font-weight: bold;
             margin-right: 5px;
         }
-        .update-button {
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
             margin-top: 15px;
+        }
+        .update-button, .home-button {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
@@ -40,8 +45,10 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            text-decoration: none;
+            text-align: center;
         }
-        .update-button:hover {
+        .update-button:hover, .home-button:hover {
             background-color: #0056b3;
         }
     </style>
@@ -52,8 +59,12 @@
         <p class="status-item"><span class="label">TSL-status</span>= <span id="status-TSL-status">Onbekend</span></p>
         <p class="status-item"><span class="label">Sunlight</span>= <span id="status-Sunlight">Onbekend</span></p>
     </div>
-    <button class="update-button" onclick="fetchStatus()">Update!</button>
+    <div class="button-container">
+        <button class="update-button" onclick="fetchStatus()">Update!</button>
+        <a href="index.html" class="home-button">Home</a>
+    </div>
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
+
 <script>
     // Particle API initialiseren
     const particle = new Particle();
@@ -66,10 +77,10 @@
         const tslStatusElement = document.getElementById('status-TSL-status');
         tslStatusElement.textContent = data['TSL-status'] !== undefined ? data['TSL-status'] : 'Onbekend';
 
-        // Sunlight (afronden naar geheel getal)
+        // Sunlight (afronden naar geheel getal en eenheid LUX toevoegen)
         const sunlightElement = document.getElementById('status-Sunlight');
         if (data['Sunlight'] !== undefined) {
-            sunlightElement.textContent = Math.floor(data['Sunlight']);
+            sunlightElement.textContent = Math.floor(data['Sunlight']) + ' LUX';
         } else {
             sunlightElement.textContent = 'Onbekend';
         }
@@ -104,8 +115,6 @@
     // Haal de status op bij laden van de pagina
     fetchStatus();
 </script>
-
 </body>
 </html>
 </xaiArtifact>
-
