@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="0251f8bd-74b4-4481-9c55-c4adeeb91a84" artifact_version_id="a83802a0-0c0a-4a68-b64d-c67be7fbddda" title="overview.html" contentType="text/html">
+<xaiArtifact artifact_id="0251f8bd-74b4-4481-9c55-c4adeeb91a84" artifact_version_id="4b2a4c02-b9b5-49a0-b089-4ff1ca801f65" title="overview.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,8 +48,13 @@
             font-weight: bold;
             text-align: left;
         }
-        .update-button {
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
             margin-top: 15px;
+        }
+        .update-button, .home-button {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
@@ -57,8 +62,10 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            text-decoration: none;
+            text-align: center;
         }
-        .update-button:hover {
+        .update-button:hover, .home-button:hover {
             background-color: #0056b3;
         }
     </style>
@@ -289,7 +296,10 @@
             </tbody>
         </table>
     </div>
-    <button class="update-button" onclick="fetchAllStatuses()">Update!</button>
+    <div class="button-container">
+        <button class="update-button" onclick="fetchAllStatuses()">Update!</button>
+        <a href="index.html" class="home-button">Home</a>
+    </div>
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
     // Particle API initialiseren
