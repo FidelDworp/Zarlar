@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="f8848b8d-8642-455e-9b08-9d1ae26af850" title="S-ECO-solar.html" contentType="text/html">
+<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="639c4428-ca3e-49ad-8a00-fb79f99e5d08" title="S-ECO-solar.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,12 +21,6 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        .energy-label {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
         .boiler-container {
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
@@ -35,6 +29,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+        .energy-label {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
         }
         canvas {
             margin-bottom: 10px;
@@ -72,9 +72,9 @@
 </head>
 <body>
     <h1>Zarlardinge Schuur - S-ECO-solar Status</h1>
-    <div class="energy-label" id="energy-label">EQtot = <span id="status-EQtot">Onbekend</span> kWh</div>
     <div class="boiler-container">
         <canvas id="boilerCanvas" width="150" height="300"></canvas>
+        <div class="energy-label" id="energy-label">EQtot = <span id="status-EQtot">Onbekend</span> kWh</div>
     </div>
     <div class="status-container">
         <p class="status-item"><span class="label">ETopH</span>= <span id="status-ETopH">Onbekend</span></p>
@@ -177,7 +177,7 @@
             element.textContent = data[variable] !== undefined ? data[variable] : 'Onbekend';
         });
 
-        // Update het EQtot-label bovenaan
+        // Update het EQtot-label in de boiler-container
         const eqtotElement = document.getElementById('status-EQtot');
         eqtotElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
 
