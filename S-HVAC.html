@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="7d2afcc4-0808-4a3d-b404-b7a577d2e5c7" title="S-HVAC.html" contentType="text/html">
+<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="8bee6fcc-c2d3-4914-8cf7-ec37e818e041" title="S-HVAC.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -57,15 +57,21 @@
             color: #fff;
             text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5); /* Voor betere leesbaarheid */
         }
-        .boiler-info {
-            margin-top: 10px;
-            font-size: 14px;
-            background-color: rgba(255, 255, 255, 0.8); /* Witte transparante achtergrond */
+        .boiler-info-container {
+            background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
             padding: 10px;
-            width: 120px; /* Iets breder dan de boiler voor een nette uitlijning */
-            margin-left: auto;
-            margin-right: auto;
+            max-width: 400px; /* Zelfde breedte als de datatabel */
+            margin: 0 auto;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+        .boiler-info {
+            font-size: 14px;
+            text-align: center;
+            flex: 1;
         }
         .status-container {
             background-color: rgba(255, 255, 255, 0.8);
@@ -126,10 +132,6 @@
             <div class="boiler-layer" id="woning-layer-5"><span id="woning-temp-5">Onbekend</span></div>
             <div class="boiler-layer" id="woning-layer-6"><span id="woning-temp-6">Onbekend</span></div>
         </div>
-        <div class="boiler-info">
-            <p>Gemiddelde: <span id="woning-avg">Onbekend</span> °C</p>
-            <p>Energie: <span id="woning-energy">Onbekend</span> kWh</p>
-        </div>
     </div>
     <div class="boiler">
         <div class="boiler-name">SCHUUR</div>
@@ -141,10 +143,19 @@
             <div class="boiler-layer" id="schuur-layer-5"><span id="schuur-temp-5">Onbekend</span></div>
             <div class="boiler-layer" id="schuur-layer-6"><span id="schuur-temp-6">Onbekend</span></div>
         </div>
-        <div class="boiler-info">
-            <p>Gemiddelde: <span id="schuur-avg">Onbekend</span> °C</p>
-            <p>Energie: <span id="schuur-energy">Onbekend</span> kWh</p>
-        </div>
+    </div>
+</div>
+
+<div class="boiler-info-container">
+    <div class="boiler-info">
+        <p><strong>WONING</strong></p>
+        <p>Tgem: <span id="woning-avg">Onbekend</span> °C</p>
+        <p>EQtot: <span id="woning-energy">Onbekend</span> kWh</p>
+    </div>
+    <div class="boiler-info">
+        <p><strong>SCHUUR</strong></p>
+        <p>Tgem: <span id="schuur-avg">Onbekend</span> °C</p>
+        <p>EQtot: <span id="schuur-energy">Onbekend</span> kWh</p>
     </div>
 </div>
 
@@ -272,3 +283,6 @@
     // Haal de status op bij laden van de pagina
     fetchStatus();
 </script>
+</body>
+</html>
+</xaiArtifact>
