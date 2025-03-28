@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="639c4428-ca3e-49ad-8a00-fb79f99e5d08" title="S-ECO-solar.html" contentType="text/html">
+<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="afa94ab0-edb3-4076-89cc-75f61423b803" title="S-ECO-solar.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,8 +18,23 @@
         }
         h1 {
             font-size: 18px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-align: center;
+        }
+        .home-button {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .home-button:hover {
+            background-color: #0056b3;
         }
         .boiler-container {
             background-color: rgba(255, 255, 255, 0.8);
@@ -72,6 +87,7 @@
 </head>
 <body>
     <h1>Zarlardinge Schuur - S-ECO-solar Status</h1>
+    <a href="index.html" class="home-button">Home</a>
     <div class="boiler-container">
         <canvas id="boilerCanvas" width="150" height="300"></canvas>
         <div class="energy-label" id="energy-label">EQtot = <span id="status-EQtot">Onbekend</span> kWh</div>
