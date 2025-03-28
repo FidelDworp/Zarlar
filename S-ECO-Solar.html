@@ -1,1 +1,111 @@
+<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="9534e886-183b-4fd5-b349-2aa1f8d2c4bf" title="S-ECO-solar.html" contentType="text/html">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zarlardinge Schuur - S-ECO-solar Status</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url("BG.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .status-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 300px;
+        }
+        .status-item {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .update-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .update-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Zarlardinge Schuur - S-ECO-solar Status</h1>
+    <div class="status-container">
+        <p class="status-item"><span class="label">ETopH</span>= <span id="status-ETopH">Onbekend</span></p>
+        <p class="status-item"><span class="label">ETopL</span>= <span id="status-ETopL">Onbekend</span></p>
+        <p class="status-item"><span class="label">EMidH</span>= <span id="status-EMidH">Onbekend</span></p>
+        <p class="status-item"><span class="label">EMidL</span>= <span id="status-EMidL">Onbekend</span></p>
+        <p class="status-item"><span class="label">EBotH</span>= <span id="status-EBotH">Onbekend</span></p>
+        <p class="status-item"><span class="label">EBotL</span>= <span id="status-EBotL">Onbekend</span></p>
+        <p class="status-item"><span class="label">EAv</span>= <span id="status-EAv">Onbekend</span></p>
+        <p class="status-item"><span class="label">EQtot</span>= <span id="status-EQtot">Onbekend</span></p>
+        <p class="status-item"><span class="label">Solar</span>= <span id="status-Solar">Onbekend</span></p>
+        <p class="status-item"><span class="label">dT</span>= <span id="status-dT">Onbekend</span></p>
+        <p class="status-item"><span class="label">dEQ</span>= <span id="status-dEQ">Onbekend</span></p>
+        <p class="status-item"><span class="label">pwmVal</span>= <span id="status-pwmVal">Onbekend</span></p>
+        <p class="status-item"><span class="label">Sun</span>= <span id="status-Sun">Onbekend</span></p>
+        <p class="status-item"><span class="label">Relay</span>= <span id="status-Relay">Onbekend</span></p>
+    </div>
+    <button class="update-button" onclick="fetchStatus()">Update!</button>
+<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
+<script>
+    // Particle API initialiseren
+    const particle = new Particle();
+    const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+    const deviceId = '310049000f47343432313031'; // S-ECO-solar
+
+    // Variabelen die we verwachten
+    const variables = ['ETopH', 'ETopL', 'EMidH', 'EMidL', 'EBotH', 'EBotL', 'EAv', 'EQtot', 'Solar', 'dT', 'dEQ', 'pwmVal', 'Sun', 'Relay'];
+
+    // Functie om de status op de pagina bij te werken
+    function updateStatus(data) {
+        variables.forEach(variable => {
+            const element = document.getElementById(`status-${variable}`);
+            element.textContent = data[variable] !== undefined ? data[variable] : 'Onbekend';
+        });
+    }
+
+    // Functie om de variabele op te halen
+    function fetchStatus() {
+        particle.getVariable({ deviceId: deviceId, name: 'JSON_temper', auth: token })
+            .then(data => {
+                console.log('API-respons:', data);
+                if (data && data.body && data.body.result) {
+                    const jsonData = JSON.parse(data.body.result);
+                    updateStatus(jsonData);
+                } else {
+                    throw new Error('Ongeldige respons: geen "result" veld');
+                }
+            })
+            .catch(err => {
+                console.error('Fout bij ophalen van variabele:', err);
+                updateStatus({});
+            });
+    }
+
+    // Haal de status op bij laden van de pagina
+    fetchStatus();
+</script>
+
+</body>
+</html>
+</xaiArtifact>
 
