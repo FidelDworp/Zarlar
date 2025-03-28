@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="3b6aa40c-e5a6-4d94-8b79-dc22630c2989" title="S-HVAC.html" contentType="text/html">
+<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="d92cddb3-e33b-477d-94bb-849be4acae2c" title="S-HVAC.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,6 +16,41 @@
         h1 {
             font-size: 18px;
             margin-bottom: 20px;
+            text-align: center;
+        }
+        .boiler-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        .boiler {
+            text-align: center;
+        }
+        .boiler-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .boiler-layers {
+            width: 100px;
+            height: 200px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .boiler-layer {
+            flex: 1;
+            border-bottom: 1px solid #333;
+            box-sizing: border-box;
+        }
+        .boiler-layer:last-child {
+            border-bottom: none;
+        }
+        .boiler-info {
+            margin-top: 10px;
+            font-size: 14px;
         }
         .status-container {
             background-color: rgba(255, 255, 255, 0.8);
@@ -23,6 +58,7 @@
             padding: 15px;
             max-width: 400px;
             margin: 0 auto;
+            margin-bottom: 20px;
         }
         table {
             width: 100%;
@@ -64,31 +100,119 @@
 </head>
 <body>
     <h1>Zarlardinge Schuur - S-HVAC Status</h1>
-    <div class="status-container">
-        <table id="hvac-table">
-            <tbody>
-                <!-- De tabel wordt dynamisch gevuld door JavaScript -->
-            </tbody>
-        </table>
+<div class="boiler-container">
+    <div class="boiler">
+        <div class="boiler-name">WONING</div>
+        <div class="boiler-layers" id="woning-boiler">
+            <div class="boiler-layer" id="woning-layer-1"></div>
+            <div class="boiler-layer" id="woning-layer-2"></div>
+            <div class="boiler-layer" id="woning-layer-3"></div>
+            <div class="boiler-layer" id="woning-layer-4"></div>
+            <div class="boiler-layer" id="woning-layer-5"></div>
+            <div class="boiler-layer" id="woning-layer-6"></div>
+        </div>
+        <div class="boiler-info">
+            <p>Gemiddelde: <span id="woning-avg">Onbekend</span> °C</p>
+            <p>Energie: <span id="woning-energy">Onbekend</span> kWh</p>
+        </div>
     </div>
-    <div class="button-container">
-        <button class="update-button" onclick="fetchStatus()">Update!</button>
-        <a href="index.html" class="home-button">Home</a>
+    <div class="boiler">
+        <div class="boiler-name">SCHUUR</div>
+        <div class="boiler-layers" id="schuur-boiler">
+            <div class="boiler-layer" id="schuur-layer-1"></div>
+            <div class="boiler-layer" id="schuur-layer-2"></div>
+            <div class="boiler-layer" id="schuur-layer-3"></div>
+            <div class="boiler-layer" id="schuur-layer-4"></div>
+            <div class="boiler-layer" id="schuur-layer-5"></div>
+            <div class="boiler-layer" id="schuur-layer-6"></div>
+        </div>
+        <div class="boiler-info">
+            <p>Gemiddelde: <span id="schuur-avg">Onbekend</span> °C</p>
+            <p>Energie: <span id="schuur-energy">Onbekend</span> kWh</p>
+        </div>
     </div>
+</div>
+
+<div class="status-container">
+    <table id="hvac-table">
+        <tbody>
+            <!-- De tabel wordt dynamisch gevuld door JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<div class="button-container">
+    <button class="update-button" onclick="fetchStatus()">Update!</button>
+    <a href="index.html" class="home-button">Home</a>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 
 <script>
     // Particle API initialiseren
     const particle = new Particle();
     const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
-    const deviceId = '290044000147353138383138'; // S-HVAC
+    const deviceId = '3e003f001447343338333633'; // S-HVAC
 
-    // Functie om de tabel bij te werken met de HVAC-data
+    // Functie om temperatuur om te zetten naar een kleur (15°C = lichtblauw, 40°C = fel rood)
+    function getColorForTemperature(temp) {
+        const minTemp = 15;
+        const maxTemp = 40;
+        const clampedTemp = Math.max(minTemp, Math.min(maxTemp, temp)); // Beperk temperatuur tussen 15 en 40
+        const ratio = (clampedTemp - minTemp) / (maxTemp - minTemp); // Normaliseer tussen 0 en 1
+
+        // Kleuren: lichtblauw (#b3e5fc) naar fel rood (#ff0000)
+        const r = Math.round(179 + (255 - 179) * ratio); // Rood: 179 -> 255
+        const g = Math.round(229 * (1 - ratio)); // Groen: 229 -> 0
+        const b = Math.round(252 * (1 - ratio)); // Blauw: 252 -> 0
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Functie om de boilers en tabel bij te werken
     function updateStatus(data) {
+        // Update de boilers
+        if (data && Object.keys(data).length > 0) {
+            // WONING boiler (KSTopH, KSTopL, KSMidH, KSMidL, KSBotH, KSBotL)
+            const woningTemps = [
+                data['KSTopH'], data['KSTopL'],
+                data['KSMidH'], data['KSMidL'],
+                data['KSBotH'], data['KSBotL']
+            ];
+            woningTemps.forEach((temp, index) => {
+                const layer = document.getElementById(`woning-layer-${index + 1}`);
+                layer.style.backgroundColor = getColorForTemperature(temp);
+            });
+            document.getElementById('woning-avg').textContent = data['KSAv'] !== undefined ? data['KSAv'].toFixed(1) : 'Onbekend';
+            document.getElementById('woning-energy').textContent = data['KSQtot'] !== undefined ? data['KSQtot'].toFixed(3) : 'Onbekend';
+
+            // SCHUUR boiler (KWTopH, KWTopL, KWMidH, KWMidL, KWBotH, KWBotL)
+            const schuurTemps = [
+                data['KWTopH'], data['KWTopL'],
+                data['KWMidH'], data['KWMidL'],
+                data['KWBotH'], data['KWBotL']
+            ];
+            schuurTemps.forEach((temp, index) => {
+                const layer = document.getElementById(`schuur-layer-${index + 1}`);
+                layer.style.backgroundColor = getColorForTemperature(temp);
+            });
+            document.getElementById('schuur-avg').textContent = data['KWAv'] !== undefined ? data['KWAv'].toFixed(1) : 'Onbekend';
+            document.getElementById('schuur-energy').textContent = data['KWQtot'] !== undefined ? data['KWQtot'].toFixed(3) : 'Onbekend';
+        } else {
+            // Als er geen data is, reset de boilers
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`woning-layer-${i}`).style.backgroundColor = '#ccc';
+                document.getElementById(`schuur-layer-${i}`).style.backgroundColor = '#ccc';
+            }
+            document.getElementById('woning-avg').textContent = 'Onbekend';
+            document.getElementById('woning-energy').textContent = 'Onbekend';
+            document.getElementById('schuur-avg').textContent = 'Onbekend';
+            document.getElementById('schuur-energy').textContent = 'Onbekend';
+        }
+
+        // Update de tabel
         const tableBody = document.querySelector('#hvac-table tbody');
         tableBody.innerHTML = ''; // Leeg de tabel
 
-        // Als er geen data is, toon "Onbekend"
         if (!data || Object.keys(data).length === 0) {
             const row = document.createElement('tr');
             row.innerHTML = '<td colspan="2">Onbekend</td>';
@@ -96,7 +220,6 @@
             return;
         }
 
-        // Maak een rij voor elke sleutel-waarde in de JSON
         for (const [key, value] of Object.entries(data)) {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -131,3 +254,4 @@
 </body>
 </html>
 </xaiArtifact>
+
