@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="3ac0b574-2476-4af5-98ef-e3b0d88039fa" title="S-ECO-solar.html" contentType="text/html">
+<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="58c2fa61-105b-4662-befc-a03419558016" title="S-ECO-solar.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,20 +13,39 @@
             color: #333;
             margin: 20px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+            flex-direction: column;
+            align-items: center;
         }
         h1 {
             font-size: 18px;
             margin-bottom: 20px;
-            width: 100%;
+            text-align: center;
+        }
+        .energy-label {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .boiler-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            margin-bottom: 10px;
         }
         .status-container {
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
             padding: 15px;
             max-width: 300px;
-            flex: 1;
+            width: 100%;
+            margin-bottom: 20px;
         }
         .status-item {
             margin: 5px 0;
@@ -49,21 +68,14 @@
         .update-button:hover {
             background-color: #0056b3;
         }
-        .boiler-container {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        canvas {
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
     <h1>Zarlardinge Schuur - S-ECO-solar Status</h1>
+    <div class="energy-label" id="energy-label">EQtot = <span id="status-EQtot">Onbekend</span> kWh</div>
+    <div class="boiler-container">
+        <canvas id="boilerCanvas" width="150" height="300"></canvas>
+    </div>
     <div class="status-container">
         <p class="status-item"><span class="label">ETopH</span>= <span id="status-ETopH">Onbekend</span></p>
         <p class="status-item"><span class="label">ETopL</span>= <span id="status-ETopL">Onbekend</span></p>
@@ -72,7 +84,7 @@
         <p class="status-item"><span class="label">EBotH</span>= <span id="status-EBotH">Onbekend</span></p>
         <p class="status-item"><span class="label">EBotL</span>= <span id="status-EBotL">Onbekend</span></p>
         <p class="status-item"><span class="label">EAv</span>= <span id="status-EAv">Onbekend</span></p>
-        <p class="status-item"><span class="label">EQtot</span>= <span id="status-EQtot">Onbekend</span></p>
+        <p class="status-item"><span class="label">EQtot</span>= <span id="status-EQtot-duplicate">Onbekend</span></p>
         <p class="status-item"><span class="label">Solar</span>= <span id="status-Solar">Onbekend</span></p>
         <p class="status-item"><span class="label">dT</span>= <span id="status-dT">Onbekend</span></p>
         <p class="status-item"><span class="label">dEQ</span>= <span id="status-dEQ">Onbekend</span></p>
@@ -80,10 +92,7 @@
         <p class="status-item"><span class="label">Sun</span>= <span id="status-Sun">Onbekend</span></p>
         <p class="status-item"><span class="label">Relay</span>= <span id="status-Relay">Onbekend</span></p>
     </div>
-    <div class="boiler-container">
-        <canvas id="boilerCanvas" width="150" height="300"></canvas>
-        <button class="update-button" onclick="fetchStatus()">Update!</button>
-    </div>
+    <button class="update-button" onclick="fetchStatus()">Update!</button>
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
     // Particle API initialiseren
@@ -146,7 +155,12 @@
             ctx.font = '12px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            // Voeg een witte schaduw toe voor betere leesbaarheid
+            ctx.shadowColor = 'white';
+            ctx.shadowBlur = 3;
             ctx.fillText(`${layer.temp || 'Onbekend'}°C`, x + boilerWidth / 2, layerY + layerHeight / 2);
+            // Reset schaduw
+            ctx.shadowBlur = 0;
         });
 
         // Teken de bovenste en onderste ellipsen (afgeronde uiteinden)
@@ -173,10 +187,19 @@
 
     // Functie om de status op de pagina bij te werken
     function updateStatus(data) {
+        // Update de lijst met variabelen
         variables.forEach(variable => {
             const element = document.getElementById(`status-${variable}`);
             element.textContent = data[variable] !== undefined ? data[variable] : 'Onbekend';
         });
+
+        // Update het EQtot-label bovenaan
+        const eqtotElement = document.getElementById('status-EQtot');
+        eqtotElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
+
+        // Update het duplicaat van EQtot in de lijst
+        const eqtotDuplicateElement = document.getElementById('status-EQtot-duplicate');
+        eqtotDuplicateElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
 
         // Teken de boiler met de temperatuurwaarden
         const temperatures = {
@@ -215,3 +238,4 @@
 </body>
 </html>
 </xaiArtifact>
+
