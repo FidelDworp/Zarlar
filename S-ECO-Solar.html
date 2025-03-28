@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="9534e886-183b-4fd5-b349-2aa1f8d2c4bf" title="S-ECO-solar.html" contentType="text/html">
+<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="3ac0b574-2476-4af5-98ef-e3b0d88039fa" title="S-ECO-solar.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,16 +12,21 @@
             font-family: Arial, sans-serif;
             color: #333;
             margin: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
         }
         h1 {
             font-size: 18px;
             margin-bottom: 20px;
+            width: 100%;
         }
         .status-container {
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
             padding: 15px;
             max-width: 300px;
+            flex: 1;
         }
         .status-item {
             margin: 5px 0;
@@ -44,6 +49,17 @@
         .update-button:hover {
             background-color: #0056b3;
         }
+        .boiler-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +80,10 @@
         <p class="status-item"><span class="label">Sun</span>= <span id="status-Sun">Onbekend</span></p>
         <p class="status-item"><span class="label">Relay</span>= <span id="status-Relay">Onbekend</span></p>
     </div>
-    <button class="update-button" onclick="fetchStatus()">Update!</button>
+    <div class="boiler-container">
+        <canvas id="boilerCanvas" width="150" height="300"></canvas>
+        <button class="update-button" onclick="fetchStatus()">Update!</button>
+    </div>
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
     // Particle API initialiseren
@@ -75,12 +94,100 @@
     // Variabelen die we verwachten
     const variables = ['ETopH', 'ETopL', 'EMidH', 'EMidL', 'EBotH', 'EBotL', 'EAv', 'EQtot', 'Solar', 'dT', 'dEQ', 'pwmVal', 'Sun', 'Relay'];
 
+    // Canvas en context
+    const canvas = document.getElementById('boilerCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Functie om temperatuur om te zetten naar een kleur (lichtblauw naar fel rood)
+    function getColorForTemperature(temp) {
+        // Beperk temperatuur tussen 20°C en 60°C voor de berekening
+        const t = Math.min(Math.max(temp, 20), 60);
+        const r = Math.round(173 + 2.05 * (t - 20));
+        const g = Math.round(216 - 5.4 * (t - 20));
+        const b = Math.round(230 - 5.75 * (t - 20));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Functie om de waterboiler te tekenen
+    function drawBoiler(temperatures) {
+        const width = canvas.width;
+        const height = canvas.height;
+        const boilerWidth = 100;
+        const boilerHeight = 200;
+        const layerHeight = boilerHeight / 6;
+        const x = (width - boilerWidth) / 2;
+        const y = (height - boilerHeight) / 2;
+
+        // Maak canvas schoon
+        ctx.clearRect(0, 0, width, height);
+
+        // Teken de lagen van onder naar boven
+        const layers = [
+            { temp: temperatures.EBotL, label: 'EBotL' },
+            { temp: temperatures.EBotH, label: 'EBotH' },
+            { temp: temperatures.EMidL, label: 'EMidL' },
+            { temp: temperatures.EMidH, label: 'EMidH' },
+            { temp: temperatures.ETopL, label: 'ETopL' },
+            { temp: temperatures.ETopH, label: 'ETopH' }
+        ];
+
+        layers.forEach((layer, index) => {
+            const layerY = y + (5 - index) * layerHeight;
+            const color = getColorForTemperature(layer.temp || 20); // Default naar 20°C als temp onbekend
+
+            // Teken de laag
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.rect(x, layerY, boilerWidth, layerHeight);
+            ctx.fill();
+
+            // Teken de temperatuurtekst
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${layer.temp || 'Onbekend'}°C`, x + boilerWidth / 2, layerY + layerHeight / 2);
+        });
+
+        // Teken de bovenste en onderste ellipsen (afgeronde uiteinden)
+        ctx.fillStyle = layers[5].temp ? getColorForTemperature(layers[5].temp) : getColorForTemperature(20);
+        ctx.beginPath();
+        ctx.ellipse(x + boilerWidth / 2, y, boilerWidth / 2, layerHeight / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = layers[0].temp ? getColorForTemperature(layers[0].temp) : getColorForTemperature(20);
+        ctx.beginPath();
+        ctx.ellipse(x + boilerWidth / 2, y + boilerHeight, boilerWidth / 2, layerHeight / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Teken de randen van de cilinder
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + boilerHeight);
+        ctx.moveTo(x + boilerWidth, y);
+        ctx.lineTo(x + boilerWidth, y + boilerHeight);
+        ctx.stroke();
+    }
+
     // Functie om de status op de pagina bij te werken
     function updateStatus(data) {
         variables.forEach(variable => {
             const element = document.getElementById(`status-${variable}`);
             element.textContent = data[variable] !== undefined ? data[variable] : 'Onbekend';
         });
+
+        // Teken de boiler met de temperatuurwaarden
+        const temperatures = {
+            ETopH: parseFloat(data.ETopH),
+            ETopL: parseFloat(data.ETopL),
+            EMidH: parseFloat(data.EMidH),
+            EMidL: parseFloat(data.EMidL),
+            EBotH: parseFloat(data.EBotH),
+            EBotL: parseFloat(data.EBotL)
+        };
+        drawBoiler(temperatures);
     }
 
     // Functie om de variabele op te halen
@@ -108,4 +215,3 @@
 </body>
 </html>
 </xaiArtifact>
-
