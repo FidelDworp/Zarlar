@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="551f53f3-631f-4b47-814f-696b310bdfad" artifact_version_id="e36e40ed-58e2-432f-bef6-3a27dfa96e53" title="S-LIGHT.html" contentType="text/html">
+<xaiArtifact artifact_id="551f53f3-631f-4b47-814f-696b310bdfad" artifact_version_id="124c3f77-93ce-45be-ad42-c3009b0916f9" title="S-LIGHT.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
     body {
-      background-image: url("BG.jpg");
-      background-size: cover;
-      background-repeat: no-repeat;
+        background-image: url("BG.jpg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 20px;
     }
     button {
         background-color: black;
@@ -34,7 +37,7 @@
         margin-top: 15px;
         margin-bottom: 20px;
     }
-    .update-button, .home-button {
+    .home-button {
         padding: 10px 20px;
         background-color: #007bff;
         color: white;
@@ -45,7 +48,7 @@
         text-decoration: none;
         text-align: center;
     }
-    .update-button:hover, .home-button:hover {
+    .home-button:hover {
         background-color: #0056b3;
     }
     </style>
@@ -92,7 +95,6 @@
     <button id="sch">ECO => SCHUUR</button>
     <button id="won">ECO => WONING</button>
 <div class="button-container">
-    <button class="update-button" onclick="updateButtonStates()">Update!</button>
     <a href="index.html" class="home-button">Home</a>
 </div>
 <script>
