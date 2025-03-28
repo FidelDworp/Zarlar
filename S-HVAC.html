@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="8bee6fcc-c2d3-4914-8cf7-ec37e818e041" title="S-HVAC.html" contentType="text/html">
+<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="19eb3653-d8b6-4837-b25e-6096b42cc4d3" title="S-HVAC.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -55,13 +55,13 @@
         .boiler-layer span {
             font-size: 10px;
             color: #fff;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5); /* Voor betere leesbaarheid */
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
         }
         .boiler-info-container {
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
             padding: 10px;
-            max-width: 400px; /* Zelfde breedte als de datatabel */
+            max-width: 400px;
             margin: 0 auto;
             margin-bottom: 20px;
             display: flex;
@@ -81,6 +81,19 @@
             margin: 0 auto;
             margin-bottom: 20px;
         }
+        .heating-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+            margin-bottom: 20px;
+        }
+        .heat-demand {
+            font-size: 18pt;
+            text-align: center;
+            margin-bottom: 10px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -91,11 +104,15 @@
         }
         td {
             padding: 8px 10px;
-            text-align: left;
+            text-align: center;
         }
         .label {
             font-weight: bold;
             margin-right: 5px;
+        }
+        .relay-on {
+            background-color: #ff0000; /* Rood als de relais aan is (waarde 1) */
+            color: #fff;
         }
         .button-container {
             display: flex;
@@ -167,6 +184,49 @@
     </table>
 </div>
 
+<div class="heating-container">
+    <div class="heat-demand" id="heat-demand">Heat Demand: Onbekend kW</div>
+    <table id="heating-table">
+        <tbody>
+            <tr>
+                <td>B&amp;B</td>
+                <td id="relay-R1">R1: Onbekend</td>
+                <td id="value-BB">BB: Onbekend%</td>
+            </tr>
+            <tr>
+                <td>Wasplaats</td>
+                <td id="relay-R2">R2: Onbekend</td>
+                <td id="value-WP">WP: Onbekend%</td>
+            </tr>
+            <tr>
+                <td>Badkamer</td>
+                <td id="relay-R3">R3: Onbekend</td>
+                <td id="value-BK">BK: Onbekend%</td>
+            </tr>
+            <tr>
+                <td>Zitplaats</td>
+                <td id="relay-R4">R4: Onbekend</td>
+                <td id="value-ZP">ZP: Onbekend%</td>
+            </tr>
+            <tr>
+                <td>Eetplaats</td>
+                <td id="relay-R5">R5: Onbekend</td>
+                <td id="value-EP">EP: Onbekend%</td>
+            </tr>
+            <tr>
+                <td>Keuken</td>
+                <td id="relay-R6">R6: Onbekend</td>
+                <td id="value-KK">KK: Onbekend%</td>
+            </tr>
+            <tr>
+                <td>Inkom</td>
+                <td id="relay-R7">R7: Onbekend</td>
+                <td id="value-IK">IK: Onbekend%</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 <div class="button-container">
     <button class="update-button" onclick="fetchStatus()">Update!</button>
     <a href="index.html" class="home-button">Home</a>
@@ -184,17 +244,22 @@
     function getColorForTemperature(temp) {
         const minTemp = 15;
         const maxTemp = 40;
-        const clampedTemp = Math.max(minTemp, Math.min(maxTemp, temp)); // Beperk temperatuur tussen 15 en 40
-        const ratio = (clampedTemp - minTemp) / (maxTemp - minTemp); // Normaliseer tussen 0 en 1
-
-        // Kleuren: lichtblauw (#b3e5fc) naar fel rood (#ff0000)
-        const r = Math.round(179 + (255 - 179) * ratio); // Rood: 179 -> 255
-        const g = Math.round(229 * (1 - ratio)); // Groen: 229 -> 0
-        const b = Math.round(252 * (1 - ratio)); // Blauw: 252 -> 0
+        const clampedTemp = Math.max(minTemp, Math.min(maxTemp, temp));
+        const ratio = (clampedTemp - minTemp) / (maxTemp - minTemp);
+        const r = Math.round(179 + (255 - 179) * ratio);
+        const g = Math.round(229 * (1 - ratio));
+        const b = Math.round(252 * (1 - ratio));
         return `rgb(${r}, ${g}, ${b})`;
     }
 
-    // Functie om de boilers en tabel bij te werken
+    // Functie om de achtergrondkleur te bepalen voor percentage (0% = wit, 100% = zwart)
+    function getColorForPercentage(value) {
+        const clampedValue = Math.max(0, Math.min(100, value)); // Beperk waarde tussen 0 en 100
+        const intensity = 255 - (clampedValue * 2.55); // Schaal van 255 (wit) naar 0 (zwart)
+        return `rgb(${intensity}, ${intensity}, ${intensity})`;
+    }
+
+    // Functie om de boilers, tabel en verwarmingstabel bij te werken
     function updateStatus(data) {
         // Update de boilers
         if (data && Object.keys(data).length > 0) {
@@ -227,6 +292,33 @@
             });
             document.getElementById('schuur-avg').textContent = data['KWAv'] !== undefined ? data['KWAv'].toFixed(1) : 'Onbekend';
             document.getElementById('schuur-energy').textContent = data['KWQtot'] !== undefined ? data['KWQtot'].toFixed(3) : 'Onbekend';
+
+            // Update Heat Demand
+            document.getElementById('heat-demand').textContent = data['HeatDem'] !== undefined ? `Heat Demand: ${data['HeatDem'].toFixed(1)} kW` : 'Heat Demand: Onbekend kW';
+
+            // Update verwarmingstabel
+            const relays = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'];
+            const places = ['BB', 'WP', 'BK', 'ZP', 'EP', 'KK', 'IK'];
+            relays.forEach((relay, index) => {
+                const relayCell = document.getElementById(`relay-${relay}`);
+                const valueCell = document.getElementById(`value-${places[index]}`);
+                const relayValue = data[relay];
+                const placeValue = data[places[index]];
+
+                // Update relais (R1 t/m R7)
+                relayCell.textContent = `${relay}: ${relayValue !== undefined ? relayValue : 'Onbekend'}`;
+                relayCell.classList.toggle('relay-on', relayValue === 1);
+
+                // Update percentage (BB, WP, etc.)
+                valueCell.textContent = `${places[index]}: ${placeValue !== undefined ? placeValue : 'Onbekend'}%`;
+                if (placeValue !== undefined) {
+                    valueCell.style.backgroundColor = getColorForPercentage(placeValue);
+                    valueCell.style.color = placeValue > 50 ? '#fff' : '#000'; // Witte tekst bij donkere achtergrond
+                } else {
+                    valueCell.style.backgroundColor = '#fff';
+                    valueCell.style.color = '#000';
+                }
+            });
         } else {
             // Als er geen data is, reset de boilers
             for (let i = 1; i <= 6; i++) {
@@ -239,11 +331,27 @@
             document.getElementById('woning-energy').textContent = 'Onbekend';
             document.getElementById('schuur-avg').textContent = 'Onbekend';
             document.getElementById('schuur-energy').textContent = 'Onbekend';
+
+            // Reset Heat Demand
+            document.getElementById('heat-demand').textContent = 'Heat Demand: Onbekend kW';
+
+            // Reset verwarmingstabel
+            const relays = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'];
+            const places = ['BB', 'WP', 'BK', 'ZP', 'EP', 'KK', 'IK'];
+            relays.forEach((relay, index) => {
+                const relayCell = document.getElementById(`relay-${relay}`);
+                const valueCell = document.getElementById(`value-${places[index]}`);
+                relayCell.textContent = `${relay}: Onbekend`;
+                relayCell.classList.remove('relay-on');
+                valueCell.textContent = `${places[index]}: Onbekend%`;
+                valueCell.style.backgroundColor = '#fff';
+                valueCell.style.color = '#000';
+            });
         }
 
-        // Update de tabel
+        // Update de datatabel
         const tableBody = document.querySelector('#hvac-table tbody');
-        tableBody.innerHTML = ''; // Leeg de tabel
+        tableBody.innerHTML = '';
 
         if (!data || Object.keys(data).length === 0) {
             const row = document.createElement('tr');
