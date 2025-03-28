@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="afa94ab0-edb3-4076-89cc-75f61423b803" title="S-ECO-solar.html" contentType="text/html">
+<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="003b1c35-e4db-449b-8276-defadfc26cb1" title="S-ECO-solar.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,23 +18,8 @@
         }
         h1 {
             font-size: 18px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        .home-button {
             margin-bottom: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
             text-align: center;
-        }
-        .home-button:hover {
-            background-color: #0056b3;
         }
         .boiler-container {
             background-color: rgba(255, 255, 255, 0.8);
@@ -70,8 +55,13 @@
             font-weight: bold;
             margin-right: 5px;
         }
-        .update-button {
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
             margin-top: 15px;
+        }
+        .update-button, .home-button {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
@@ -79,15 +69,16 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            text-decoration: none;
+            text-align: center;
         }
-        .update-button:hover {
+        .update-button:hover, .home-button:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
 <body>
     <h1>Zarlardinge Schuur - S-ECO-solar Status</h1>
-    <a href="index.html" class="home-button">Home</a>
     <div class="boiler-container">
         <canvas id="boilerCanvas" width="150" height="300"></canvas>
         <div class="energy-label" id="energy-label">EQtot = <span id="status-EQtot">Onbekend</span> kWh</div>
@@ -108,7 +99,10 @@
         <p class="status-item"><span class="label">Sun</span>= <span id="status-Sun">Onbekend</span></p>
         <p class="status-item"><span class="label">Relay</span>= <span id="status-Relay">Onbekend</span></p>
     </div>
-    <button class="update-button" onclick="fetchStatus()">Update!</button>
+    <div class="button-container">
+        <button class="update-button" onclick="fetchStatus()">Update!</button>
+        <a href="index.html" class="home-button">Home</a>
+    </div>
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
     // Particle API initialiseren
