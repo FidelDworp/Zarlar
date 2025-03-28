@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="bec3e043-5cdf-479c-a0dd-157c83f3da56" artifact_version_id="35870c91-3df2-43a9-8825-1f19522ec991" title="index.html" contentType="text/html">
+<xaiArtifact artifact_id="bec3e043-5cdf-479c-a0dd-157c83f3da56" artifact_version_id="eb57ff87-f897-41cf-acf6-ffd4cde1756d" title="index.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,27 +27,28 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 16px;
+            font-size: 14px; /* Consistent met de knoppen */
         }
         tr {
-            background-color: #f5f5f5; /* Standaard achtergrondkleur (lichtgrijs) */
+            background-color: #007bff; /* Standaard achtergrondkleur (zelfde blauw als knoppen) */
             transition: background-color 0.3s ease; /* Soepele overgang voor hover/selectie */
         }
         tr:hover {
-            background-color: #e3f2fd; /* Hover-kleur (lichtblauw) */
+            background-color: #42a5f5; /* Hover-kleur (lichter blauw) */
             cursor: pointer;
         }
         tr.selected {
-            background-color: #90caf9; /* Selectie-kleur (donkerder blauw) */
+            background-color: #ff0000; /* Selectie-kleur (rood) */
         }
         td {
-            padding: 12px 15px;
-            text-align: left;
+            padding: 10px 20px; /* Consistent met de padding van knoppen */
+            text-align: center; /* Centreer de tekst, zoals bij knoppen */
         }
         a {
-            color: #007bff;
+            color: white; /* Witte tekst, zoals bij knoppen */
             text-decoration: none;
             display: block; /* Zorgt ervoor dat de link de hele cel vult */
+            font-family: Arial, sans-serif;
         }
         a:hover {
             text-decoration: none; /* Geen onderstreping bij hover, want de rij verandert al van kleur */
