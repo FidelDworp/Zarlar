@@ -1,1 +1,133 @@
+<xaiArtifact artifact_id="85bf77db-0ea2-497e-ad9e-2141dc13a740" artifact_version_id="3b6aa40c-e5a6-4d94-8b79-dc22630c2989" title="S-HVAC.html" contentType="text/html">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zarlardinge Schuur - S-HVAC Status</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url("BG.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .status-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        tr {
+            border-bottom: 1px solid #ddd;
+        }
+        td {
+            padding: 8px 10px;
+            text-align: left;
+        }
+        .label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .update-button, .home-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .update-button:hover, .home-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Zarlardinge Schuur - S-HVAC Status</h1>
+    <div class="status-container">
+        <table id="hvac-table">
+            <tbody>
+                <!-- De tabel wordt dynamisch gevuld door JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    <div class="button-container">
+        <button class="update-button" onclick="fetchStatus()">Update!</button>
+        <a href="index.html" class="home-button">Home</a>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 
+<script>
+    // Particle API initialiseren
+    const particle = new Particle();
+    const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+    const deviceId = '3e003f001447343338333633'; // S-HVAC
+
+    // Functie om de tabel bij te werken met de HVAC-data
+    function updateStatus(data) {
+        const tableBody = document.querySelector('#hvac-table tbody');
+        tableBody.innerHTML = ''; // Leeg de tabel
+
+        // Als er geen data is, toon "Onbekend"
+        if (!data || Object.keys(data).length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="2">Onbekend</td>';
+            tableBody.appendChild(row);
+            return;
+        }
+
+        // Maak een rij voor elke sleutel-waarde in de JSON
+        for (const [key, value] of Object.entries(data)) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><span class="label">${key}</span></td>
+                <td>${value}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+    }
+
+    // Functie om de JSON_hvac variabele op te halen
+    function fetchStatus() {
+        particle.getVariable({ deviceId: deviceId, name: 'JSON_hvac', auth: token })
+            .then(data => {
+                if (data && data.body && data.body.result) {
+                    // Parseer de JSON-string naar een object
+                    const hvacData = JSON.parse(data.body.result);
+                    updateStatus(hvacData);
+                } else {
+                    throw new Error('Ongeldige respons: geen "result" veld');
+                }
+            })
+            .catch(err => {
+                console.error('Fout bij ophalen van JSON_hvac:', err);
+                updateStatus({});
+            });
+    }
+
+    // Haal de status op bij laden van de pagina
+    fetchStatus();
+</script>
+</body>
+</html>
+</xaiArtifact>
