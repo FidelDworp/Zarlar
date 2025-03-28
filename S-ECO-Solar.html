@@ -1,4 +1,4 @@
-<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="58c2fa61-105b-4662-befc-a03419558016" title="S-ECO-solar.html" contentType="text/html">
+<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="f8848b8d-8642-455e-9b08-9d1ae26af850" title="S-ECO-solar.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -117,7 +117,7 @@
         return `rgb(${r}, ${g}, ${b})`;
     }
 
-    // Functie om de waterboiler te tekenen
+    // Functie om de waterboiler te tekenen als zes rechthoeken
     function drawBoiler(temperatures) {
         const width = canvas.width;
         const height = canvas.height;
@@ -144,11 +144,16 @@
             const layerY = y + (5 - index) * layerHeight;
             const color = getColorForTemperature(layer.temp || 20); // Default naar 20°C als temp onbekend
 
-            // Teken de laag
+            // Teken de rechthoekige laag
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.rect(x, layerY, boilerWidth, layerHeight);
             ctx.fill();
+
+            // Teken de rand van de rechthoek
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, layerY, boilerWidth, layerHeight);
 
             // Teken de temperatuurtekst
             ctx.fillStyle = '#000';
@@ -162,27 +167,6 @@
             // Reset schaduw
             ctx.shadowBlur = 0;
         });
-
-        // Teken de bovenste en onderste ellipsen (afgeronde uiteinden)
-        ctx.fillStyle = layers[5].temp ? getColorForTemperature(layers[5].temp) : getColorForTemperature(20);
-        ctx.beginPath();
-        ctx.ellipse(x + boilerWidth / 2, y, boilerWidth / 2, layerHeight / 2, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = layers[0].temp ? getColorForTemperature(layers[0].temp) : getColorForTemperature(20);
-        ctx.beginPath();
-        ctx.ellipse(x + boilerWidth / 2, y + boilerHeight, boilerWidth / 2, layerHeight / 2, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Teken de randen van de cilinder
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y + boilerHeight);
-        ctx.moveTo(x + boilerWidth, y);
-        ctx.lineTo(x + boilerWidth, y + boilerHeight);
-        ctx.stroke();
     }
 
     // Functie om de status op de pagina bij te werken
@@ -238,4 +222,3 @@
 </body>
 </html>
 </xaiArtifact>
-
