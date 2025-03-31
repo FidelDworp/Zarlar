@@ -97,6 +97,10 @@
         <div class="graph-container">
             <canvas id="graphCanvas" width="300" height="150"></canvas>
         </div>
+        <div class="button-container">
+            <button class="update-button" onclick="fetchStatus()">Update!</button>
+            <a href="index.html" class="home-button">Home</a>
+        </div>
     </div>
     <div class="status-container">
         <p class="status-item"><span class="label">ETopH</span>= <span id="status-ETopH">Onbekend</span></p>
@@ -113,10 +117,6 @@
         <p class="status-item"><span class="label">pwmVal</span>= <span id="status-pwmVal">Onbekend</span></p>
         <p class="status-item"><span class="label">Sun</span>= <span id="status-Sun">Onbekend</span></p>
         <p class="status-item"><span class="label">Relay</span>= <span id="status-Relay">Onbekend</span></p>
-    </div>
-    <div class="button-container">
-        <button class="update-button" onclick="fetchStatus()">Update!</button>
-        <a href="index.html" class="home-button">Home</a>
     </div>
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
@@ -359,28 +359,34 @@
             }
         }
 
-        // Teken de lijn en punten
+        // Teken de lijn
         graphCtx.strokeStyle = '#007bff';
         graphCtx.lineWidth = 2;
         graphCtx.beginPath();
-        let firstPoint = true;
-        validData.forEach((entry, index) => {
+        let firstPointDrawn = false;
+        validData.forEach((entry) => {
             const timeSinceStart = (entry.timestamp - firstTime) / (1000 * 60); // Minuten sinds eerste punt
-            const x = padding + (timeSinceStart / timeSpanMinutes) * graphWidth;
+            const x = padding + (timeSpanMinutes > 0 ? (timeSinceStart / timeSpanMinutes) * graphWidth : graphWidth / 2);
             const y = height - padding - ((entry.value - minEQtot) / range) * graphHeight;
-            if (firstPoint) {
+            if (!firstPointDrawn) {
                 graphCtx.moveTo(x, y);
-                firstPoint = false;
+                firstPointDrawn = true;
             } else {
                 graphCtx.lineTo(x, y);
             }
-            // Teken een punt
-            graphCtx.fillStyle = '#007bff';
+        });
+        graphCtx.stroke();
+
+        // Teken de punten
+        graphCtx.fillStyle = '#007bff';
+        validData.forEach((entry) => {
+            const timeSinceStart = (entry.timestamp - firstTime) / (1000 * 60); // Minuten sinds eerste punt
+            const x = padding + (timeSpanMinutes > 0 ? (timeSinceStart / timeSpanMinutes) * graphWidth : graphWidth / 2);
+            const y = height - padding - ((entry.value - minEQtot) / range) * graphHeight;
             graphCtx.beginPath();
             graphCtx.arc(x, y, 3, 0, Math.PI * 2);
             graphCtx.fill();
         });
-        graphCtx.stroke();
     }
 
     // Functie om de status op de pagina bij te werken
