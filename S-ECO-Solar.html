@@ -142,7 +142,7 @@
     let pumpAngle = 0;
     let animationFrameId = null;
 
-    // Array voor EQtot data van deze sessie
+    // Array voor EQtot data van deze sessie (met tijdstempels)
     let eqtotHistory = [];
 
     // Functie om temperatuur om te zetten naar een kleur (lichtblauw naar fel rood)
@@ -303,7 +303,7 @@
         graphCtx.stroke();
 
         // Controleer of er data is
-        const validData = eqtotHistory.filter(v => v !== null && !isNaN(v));
+        const validData = eqtotHistory.filter(entry => entry.value !== null && !isNaN(entry.value));
         if (validData.length === 0) {
             graphCtx.fillStyle = '#000';
             graphCtx.font = '12px Arial';
@@ -314,52 +314,73 @@
         }
 
         // Bepaal min en max EQtot voor schaling
-        const minEQtot = Math.min(...validData);
-        const maxEQtot = Math.max(...validData);
-        const range = maxEQtot - minEQtot || 1; // Vermijd деление op 0
-
-        // Teken punten en (indien mogelijk) een lijn
-        graphCtx.fillStyle = '#007bff';
-        graphCtx.strokeStyle = '#007bff';
-        graphCtx.lineWidth = 2;
-
-        if (validData.length === 1) {
-            // Teken een enkel punt als er maar één waarde is
-            const value = validData[0];
-            const x = padding + graphWidth / 2; // Midden van de grafiek
-            const y = height - padding - ((value - minEQtot) / range) * graphHeight;
-            graphCtx.beginPath();
-            graphCtx.arc(x, y, 3, 0, Math.PI * 2); // Teken een kleine cirkel
-            graphCtx.fill();
-        } else {
-            // Teken een lijn en punten als er meerdere waarden zijn
-            graphCtx.beginPath();
-            eqtotHistory.forEach((value, index) => {
-                if (value !== null && !isNaN(value)) {
-                    const x = padding + (index / (eqtotHistory.length - 1)) * graphWidth;
-                    const y = height - padding - ((value - minEQtot) / range) * graphHeight;
-                    if (index === 0) {
-                        graphCtx.moveTo(x, y);
-                    } else {
-                        graphCtx.lineTo(x, y);
-                    }
-                    // Teken een punt op deze locatie
-                    graphCtx.fillStyle = '#007bff';
-                    graphCtx.beginPath();
-                    graphCtx.arc(x, y, 3, 0, Math.PI * 2);
-                    graphCtx.fill();
-                }
-            });
-            graphCtx.stroke();
+        const values = validData.map(entry => entry.value);
+        let minEQtot = Math.floor(Math.min(...values));
+        let maxEQtot = Math.ceil(Math.max(...values));
+        if (minEQtot === maxEQtot) {
+            minEQtot -= 1;
+            maxEQtot += 1;
         }
+        const range = maxEQtot - minEQtot;
 
-        // Teken y-as labels (min en max)
+        // Teken y-as labels (integers)
         graphCtx.fillStyle = '#000';
         graphCtx.font = '10px Arial';
         graphCtx.textAlign = 'right';
         graphCtx.textBaseline = 'middle';
-        graphCtx.fillText(Math.round(minEQtot), padding - 5, height - padding);
-        graphCtx.fillText(Math.round(maxEQtot), padding - 5, padding);
+        for (let i = minEQtot; i <= maxEQtot; i++) {
+            const y = height - padding - ((i - minEQtot) / range) * graphHeight;
+            graphCtx.fillText(i, padding - 5, y);
+            // Teken een streepje op de y-as
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding - 3, y);
+            graphCtx.lineTo(padding, y);
+            graphCtx.stroke();
+        }
+
+        // Teken "kW" boven de y-as
+        graphCtx.textAlign = 'center';
+        graphCtx.fillText('kW', padding, padding - 10);
+
+        // Bepaal tijdspanne voor x-as
+        const firstTime = validData[0].timestamp;
+        const lastTime = validData[validData.length - 1].timestamp;
+        const timeSpanMinutes = (lastTime - firstTime) / (1000 * 60); // Tijdspanne in minuten
+
+        // Teken x-as streepjes (per minuut)
+        if (timeSpanMinutes > 0) {
+            const pixelsPerMinute = graphWidth / timeSpanMinutes;
+            for (let minute = 0; minute <= Math.ceil(timeSpanMinutes); minute++) {
+                const x = padding + minute * pixelsPerMinute;
+                graphCtx.beginPath();
+                graphCtx.moveTo(x, height - padding);
+                graphCtx.lineTo(x, height - padding + 5);
+                graphCtx.stroke();
+            }
+        }
+
+        // Teken de lijn en punten
+        graphCtx.strokeStyle = '#007bff';
+        graphCtx.lineWidth = 2;
+        graphCtx.beginPath();
+        let firstPoint = true;
+        validData.forEach((entry, index) => {
+            const timeSinceStart = (entry.timestamp - firstTime) / (1000 * 60); // Minuten sinds eerste punt
+            const x = padding + (timeSinceStart / timeSpanMinutes) * graphWidth;
+            const y = height - padding - ((entry.value - minEQtot) / range) * graphHeight;
+            if (firstPoint) {
+                graphCtx.moveTo(x, y);
+                firstPoint = false;
+            } else {
+                graphCtx.lineTo(x, y);
+            }
+            // Teken een punt
+            graphCtx.fillStyle = '#007bff';
+            graphCtx.beginPath();
+            graphCtx.arc(x, y, 3, 0, Math.PI * 2);
+            graphCtx.fill();
+        });
+        graphCtx.stroke();
     }
 
     // Functie om de status op de pagina bij te werken
@@ -391,10 +412,13 @@
         const tgem = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : 'Onbekend';
         document.getElementById('status-Tgem').textContent = tgem;
 
-        // Voeg EQtot toe aan de geschiedenis
+        // Voeg EQtot toe aan de geschiedenis met tijdstempel
         const eqtotValue = parseFloat(data.EQtot);
         if (!isNaN(eqtotValue)) {
-            eqtotHistory.push(eqtotValue);
+            eqtotHistory.push({
+                value: eqtotValue,
+                timestamp: Date.now()
+            });
             console.log('EQtot History:', eqtotHistory); // Debug log
         }
 
