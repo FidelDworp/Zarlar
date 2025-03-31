@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Zarlardinge Schuur - S-ECO-solar Status</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name  name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
             background-image: url("BG.jpg");
@@ -118,7 +118,7 @@
         <button class="update-button" onclick="fetchStatus()">Update!</button>
         <a href="index.html" class="home-button">Home</a>
     </div>
-<script src="https://cdn.jsdelivr.net/npm/particle HouseholdAPI-js@8/dist/particle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
     // Particle API initialiseren
     const particle = new Particle();
@@ -142,9 +142,8 @@
     let pumpAngle = 0;
     let animationFrameId = null;
 
-    // Array voor 24-uurs EQtot data (elk uur een waarde)
-    let eqtotHistory = Array(24).fill(null); // Start met 24 null-waarden
-    let lastUpdateHour = null;
+    // Array voor EQtot data van deze sessie
+    let eqtotHistory = [];
 
     // Functie om temperatuur om te zetten naar een kleur (lichtblauw naar fel rood)
     function getColorForTemperature(temp) {
@@ -284,7 +283,7 @@
         });
     }
 
-    // Functie om de 24-uurs grafiek te tekenen
+    // Functie om de grafiek te tekenen met alle EQtot-waarden van deze sessie
     function drawGraph() {
         const width = graphCanvas.width;
         const height = graphCanvas.height;
@@ -303,9 +302,18 @@
         graphCtx.lineTo(width - padding, height - padding);
         graphCtx.stroke();
 
+        // Controleer of er data is
+        const validData = eqtotHistory.filter(v => v !== null && !isNaN(v));
+        if (validData.length === 0) {
+            graphCtx.fillStyle = '#000';
+            graphCtx.font = '12px Arial';
+            graphCtx.textAlign = 'center';
+            graphCtx.textBaseline = 'middle';
+            graphCtx.fillText('Geen data beschikbaar', width / 2, height / 2);
+            return;
+        }
+
         // Bepaal min en max EQtot voor schaling
-        const validData = eqtotHistory.filter(v => v !== null);
-        if (validData.length === 0) return;
         const minEQtot = Math.min(...validData);
         const maxEQtot = Math.max(...validData);
         const range = maxEQtot - minEQtot || 1; // Vermijd деление op 0
@@ -315,8 +323,8 @@
         graphCtx.lineWidth = 2;
         graphCtx.beginPath();
         eqtotHistory.forEach((value, index) => {
-            if (value !== null) {
-                const x = padding + (index / 23) * graphWidth;
+            if (value !== null && !isNaN(value)) {
+                const x = padding + (index / (eqtotHistory.length - 1)) * graphWidth;
                 const y = height - padding - ((value - minEQtot) / range) * graphHeight;
                 if (index === 0) {
                     graphCtx.moveTo(x, y);
@@ -327,15 +335,13 @@
         });
         graphCtx.stroke();
 
-        // Teken labels (elk 6 uur)
+        // Teken y-as labels (min en max)
         graphCtx.fillStyle = '#000';
         graphCtx.font = '10px Arial';
-        graphCtx.textAlign = 'center';
-        graphCtx.textBaseline = 'top';
-        for (let i = 0; i < 24; i += 6) {
-            const x = padding + (i / 23) * graphWidth;
-            graphCtx.fillText(`${-23 + i}h`, x, height - padding + 5);
-        }
+        graphCtx.textAlign = 'right';
+        graphCtx.textBaseline = 'middle';
+        graphCtx.fillText(Math.round(minEQtot), padding - 5, height - padding);
+        graphCtx.fillText(Math.round(maxEQtot), padding - 5, padding);
     }
 
     // Functie om de status op de pagina bij te werken
@@ -367,12 +373,10 @@
         const tgem = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : 'Onbekend';
         document.getElementById('status-Tgem').textContent = tgem;
 
-        // Update EQtot geschiedenis
-        const currentHour = new Date().getHours();
-        if (lastUpdateHour !== currentHour && data.EQtot !== undefined) {
-            eqtotHistory.shift(); // Verwijder oudste waarde
-            eqtotHistory.push(parseFloat(data.EQtot)); // Voeg nieuwe waarde toe
-            lastUpdateHour = currentHour;
+        // Voeg EQtot toe aan de geschiedenis
+        const eqtotValue = parseFloat(data.EQtot);
+        if (!isNaN(eqtotValue)) {
+            eqtotHistory.push(eqtotValue);
         }
 
         const temperatures = {
@@ -393,7 +397,6 @@
     function fetchStatus() {
         particle.getVariable({ deviceId: deviceId, name: 'JSON_temper', auth: token })
             .then(data => {
-                console.log('API-respons:', data);
                 if (data && data.body && data.body.result) {
                     const jsonData = JSON.parse(data.body.result);
                     updateStatus(jsonData);
