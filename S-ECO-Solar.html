@@ -189,7 +189,7 @@
         pumpCtx.clearRect(0, 0, width, height);
 
         // Teken de buitenste cirkel, gekleurd op basis van Relay
-        pumpCtx.fillStyle = relay === 1 ? 'rgba(255, 182, 193, 0.5)' : 'rgba(173, 216, 230, 0.5)'; // Lichtrood of lichtblauw
+        pumpCtx.fillStyle = relay === 1 ? 'rgba(255, 182, 193, 0.5)' : 'rgba(173, 216, 230, 0.5)';
         pumpCtx.beginPath();
         pumpCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         pumpCtx.fill();
@@ -206,7 +206,7 @@
         for (let i = 0; i < 6; i++) {
             pumpCtx.beginPath();
             pumpCtx.moveTo(0, 0);
-            const angle = (i * 2 * Math.PI) / 6; // 6 schoepen
+            const angle = (i * 2 * Math.PI) / 6;
             pumpCtx.quadraticCurveTo(
                 10 * Math.cos(angle + Math.PI / 12), 10 * Math.sin(angle + Math.PI / 12),
                 15 * Math.cos(angle), 15 * Math.sin(angle)
@@ -216,13 +216,13 @@
         }
         pumpCtx.restore();
 
-        // Bereken rotatiesnelheid: 0 RPM bij pwmVal=0, 20 RPM bij pwmVal=255 (10x sneller)
+        // Bereken rotatiesnelheid: 0 RPM bij pwmVal=0, 20 RPM bij pwmVal=255
         const rpm = (pwmVal / 255) * 20;
         const radiansPerSecond = (rpm * 2 * Math.PI) / 60;
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         if (radiansPerSecond > 0) {
             function animatePump(timestamp) {
-                pumpAngle += radiansPerSecond * (1 / 60); // 60 FPS aanname
+                pumpAngle += radiansPerSecond * (1 / 60);
                 drawPump(pwmVal, relay);
                 animationFrameId = requestAnimationFrame(animatePump);
             }
@@ -284,6 +284,9 @@
 
         const eqtotElement = document.getElementById('status-EQtot');
         eqtotElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
+        // Kleur EQtot-label op basis van dEQ
+        const dEQ = parseFloat(data.dEQ);
+        eqtotElement.parentElement.style.color = (dEQ > 0) ? 'red' : 'blue';
 
         const eqtotDuplicateElement = document.getElementById('status-EQtot-duplicate');
         eqtotDuplicateElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
