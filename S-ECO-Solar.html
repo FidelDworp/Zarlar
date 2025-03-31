@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Zarlardinge Schuur - S-ECO-solar Status</title>
-    <meta name  name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
             background-image: url("BG.jpg");
@@ -318,22 +318,40 @@
         const maxEQtot = Math.max(...validData);
         const range = maxEQtot - minEQtot || 1; // Vermijd деление op 0
 
-        // Teken de lijn
+        // Teken punten en (indien mogelijk) een lijn
+        graphCtx.fillStyle = '#007bff';
         graphCtx.strokeStyle = '#007bff';
         graphCtx.lineWidth = 2;
-        graphCtx.beginPath();
-        eqtotHistory.forEach((value, index) => {
-            if (value !== null && !isNaN(value)) {
-                const x = padding + (index / (eqtotHistory.length - 1)) * graphWidth;
-                const y = height - padding - ((value - minEQtot) / range) * graphHeight;
-                if (index === 0) {
-                    graphCtx.moveTo(x, y);
-                } else {
-                    graphCtx.lineTo(x, y);
+
+        if (validData.length === 1) {
+            // Teken een enkel punt als er maar één waarde is
+            const value = validData[0];
+            const x = padding + graphWidth / 2; // Midden van de grafiek
+            const y = height - padding - ((value - minEQtot) / range) * graphHeight;
+            graphCtx.beginPath();
+            graphCtx.arc(x, y, 3, 0, Math.PI * 2); // Teken een kleine cirkel
+            graphCtx.fill();
+        } else {
+            // Teken een lijn en punten als er meerdere waarden zijn
+            graphCtx.beginPath();
+            eqtotHistory.forEach((value, index) => {
+                if (value !== null && !isNaN(value)) {
+                    const x = padding + (index / (eqtotHistory.length - 1)) * graphWidth;
+                    const y = height - padding - ((value - minEQtot) / range) * graphHeight;
+                    if (index === 0) {
+                        graphCtx.moveTo(x, y);
+                    } else {
+                        graphCtx.lineTo(x, y);
+                    }
+                    // Teken een punt op deze locatie
+                    graphCtx.fillStyle = '#007bff';
+                    graphCtx.beginPath();
+                    graphCtx.arc(x, y, 3, 0, Math.PI * 2);
+                    graphCtx.fill();
                 }
-            }
-        });
-        graphCtx.stroke();
+            });
+            graphCtx.stroke();
+        }
 
         // Teken y-as labels (min en max)
         graphCtx.fillStyle = '#000';
@@ -377,6 +395,7 @@
         const eqtotValue = parseFloat(data.EQtot);
         if (!isNaN(eqtotValue)) {
             eqtotHistory.push(eqtotValue);
+            console.log('EQtot History:', eqtotHistory); // Debug log
         }
 
         const temperatures = {
