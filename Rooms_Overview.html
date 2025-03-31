@@ -36,6 +36,9 @@
         th {
             background-color: #f2f2f2;
             font-weight: bold;
+            position: sticky; /* Maak de header sticky */
+            top: 0; /* Plak bovenaan bij verticaal scrollen */
+            z-index: 2; /* Zorg dat headers boven de cellen blijven */
         }
         td {
             background-color: #fff;
@@ -46,6 +49,14 @@
         .controller-name {
             font-weight: bold;
             text-align: left;
+            position: sticky; /* Maak de eerste kolom sticky */
+            left: 0; /* Plak aan de linkerkant bij horizontaal scrollen */
+            background-color: #fff; /* Zorg voor een consistente achtergrond */
+            z-index: 1; /* Zorg dat deze boven andere cellen ligt, maar onder headers */
+            min-width: 100px; /* Geef een minimale breedte om te zorgen dat de naam leesbaar blijft */
+        }
+        tr:nth-child(even) .controller-name {
+            background-color: #f9f9f9; /* Behoud de even/odd-kleuring */
         }
         .button-container {
             display: flex;
