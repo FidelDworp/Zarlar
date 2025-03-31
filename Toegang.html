@@ -1,1 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Toegang</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    body {
+        background-image: url("BG.jpg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 20px;
+    }
+    button {
+        background-color: black;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 5px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    button.on {
+        background-color: red;
+    }
+    h1 {
+        font-size: 18px;
+        font-family: Arial, sans-serif;
+        color: #333;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .section-container {
+        background-color: rgba(128, 128, 128, 0.5);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+        margin-bottom: 20px;
+    }
+    .home-button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        text-align: center;
+    }
+    .home-button:hover {
+        background-color: #0056b3;
+    }
+    </style>
+</head>
+<body>
+    <div class="title">Toegang</div>
 
+    <div class="section-container">
+        <h1>Frontdeur</h1>
+        <button id="frontdoor">Frontdeur: Gesloten</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Achterdeur</h1>
+        <button id="backdoor">Achterdeur: Gesloten</button>
+    </div>
+
+    <div class="button-container">
+        <a href="index.html" class="home-button">Home</a>
+    </div>
+
+    <script>
+    // Lokale status van de sloten bijhouden
+    const lockStates = {
+        frontdoor: false, // false = gesloten (relay off), true = open (relay on)
+        backdoor: false
+    };
+
+    // Configuratie van de apparaten (vervang deze IP-adressen met de echte!)
+    const devices = {
+        frontdoor: { ip: '192.168.1.100', switchName: 'Relay 1' },
+        backdoor: { ip: '192.168.1.101', switchName: 'Relay 1' }
+    };
+
+    // Namen voor leesbare labels
+    const doorNames = {
+        frontdoor: 'Frontdeur',
+        backdoor: 'Achterdeur'
+    };
+
+    // Functie om het slot te toggelen via HTTP-verzoek
+    function toggleLock(buttonId) {
+        const device = devices[buttonId];
+        const url = `http://${device.ip}/switch/${encodeURIComponent(device.switchName)}/toggle`;
+        
+        fetch(url, {
+            method: 'GET'
+        })
+        .then(response => {
+            if (response.ok) {
+                lockStates[buttonId] = !lockStates[buttonId]; // Toggle lokale status
+                updateButtonStates();
+            } else {
+                console.error(`Fout bij het toggelen van ${doorNames[buttonId]}: ${response.status}`);
+            }
+        })
+        .catch(error => console.error(`Netwerkfout bij ${doorNames[buttonId]}:`, error));
+    }
+
+    // Functie om de knoppen bij te werken
+    function updateButtonStates() {
+        Object.keys(lockStates).forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            const isOpen = lockStates[buttonId];
+            button.textContent = `${doorNames[buttonId]}: ${isOpen ? 'Open' : 'Gesloten'}`;
+            button.classList.toggle('on', isOpen);
+        });
+    }
+
+    // Event listeners toevoegen aan de knoppen
+    document.getElementById('frontdoor').addEventListener('click', () => toggleLock('frontdoor'));
+    document.getElementById('backdoor').addEventListener('click', () => toggleLock('backdoor'));
+
+    // Initialiseer de knoppen bij het laden van de pagina
+    updateButtonStates();
+    </script>
+</body>
+</html>
