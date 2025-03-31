@@ -25,7 +25,7 @@
         background-color: red;
     }
     button.active {
-        background-color: #007bff; /* Blauwe kleur voor actieve stand */
+        background-color: #007bff;
     }
     h1 {
         font-size: 18px;
@@ -69,6 +69,14 @@
 </head>
 <body>
     <div class="title">Zarlardinge - Schuur</div>
+
+    <div class="section-container">
+        <h1>Zitplaats</h1>
+        <button id="muurspots">Muurspots</button>
+        <button id="tvback">TV Backlight</button>
+        <button id="clocktime">Zomer/Winter</button>
+        <button id="clockbrightness">Helderheid</button>
+    </div>
 
     <div class="section-container">
         <h1>BandB</h1>
@@ -140,14 +148,6 @@
         <button id="won">ECO => WONING</button>
     </div>
 
-    <div class="section-container">
-        <h1>Zitplaats</h1>
-        <button id="muurspots">Muurspots</button>
-        <button id="tvback">TV Backlight</button>
-        <button id="clocktime">Zomer/Winter</button>
-        <button id="clockbrightness">Helderheid</button>
-    </div>
-
     <div class="button-container">
         <a href="index.html" class="home-button">Home</a>
     </div>
@@ -173,6 +173,12 @@
     }
 
     const controllers = [
+        {
+            name: 'Zitplaats',
+            deviceId: '410038000547353138383138',
+            command: 'manual',
+            buttons: ['muurspots', 'tvback', 'clocktime', 'clockbrightness']
+        },
         {
             name: 'BandB',
             deviceId: '30002c000547343233323032',
@@ -232,12 +238,6 @@
             deviceId: '3e003f001447343338333633',
             command: 'manual',
             buttons: ['home', 'out', 'sch', 'won']
-        },
-        {
-            name: 'Zitplaats',
-            deviceId: '410038000547353138383138',
-            command: 'manual',
-            buttons: ['muurspots', 'tvback', 'clocktime', 'clockbrightness']
         }
     ];
 
