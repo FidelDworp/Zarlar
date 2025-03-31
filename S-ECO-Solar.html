@@ -1,4 +1,3 @@
-<xaiArtifact artifact_id="4897fbcf-3f90-4138-aa3e-d49ea5f50f4e" artifact_version_id="003b1c35-e4db-449b-8276-defadfc26cb1" title="S-ECO-solar.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,6 +33,11 @@
             font-size: 18px;
             font-weight: bold;
             margin-top: 10px;
+            text-align: center;
+        }
+        .temp-label {
+            font-size: 16px;
+            margin-top: 5px;
             text-align: center;
         }
         canvas {
@@ -80,7 +84,10 @@
 <body>
     <h1>Zarlardinge Schuur - S-ECO-solar Status</h1>
     <div class="boiler-container">
+        <canvas id="sunCanvas" width="100" height="100"></canvas>
+        <div class="temp-label" id="solar-label">Solar = <span id="status-Solar-display">Onbekend</span>°C</div>
         <canvas id="boilerCanvas" width="150" height="300"></canvas>
+        <div class="temp-label" id="tgem-label">Tgem = <span id="status-Tgem">Onbekend</span>°C</div>
         <div class="energy-label" id="energy-label">EQtot = <span id="status-EQtot">Onbekend</span> kWh</div>
     </div>
     <div class="status-container">
@@ -113,13 +120,14 @@
     // Variabelen die we verwachten
     const variables = ['ETopH', 'ETopL', 'EMidH', 'EMidL', 'EBotH', 'EBotL', 'EAv', 'EQtot', 'Solar', 'dT', 'dEQ', 'pwmVal', 'Sun', 'Relay'];
 
-    // Canvas en context
-    const canvas = document.getElementById('boilerCanvas');
-    const ctx = canvas.getContext('2d');
+    // Canvas en context voor boiler en zon
+    const boilerCanvas = document.getElementById('boilerCanvas');
+    const boilerCtx = boilerCanvas.getContext('2d');
+    const sunCanvas = document.getElementById('sunCanvas');
+    const sunCtx = sunCanvas.getContext('2d');
 
     // Functie om temperatuur om te zetten naar een kleur (lichtblauw naar fel rood)
     function getColorForTemperature(temp) {
-        // Beperk temperatuur tussen 20°C en 60°C voor de berekening
         const t = Math.min(Math.max(temp, 20), 60);
         const r = Math.round(173 + 2.05 * (t - 20));
         const g = Math.round(216 - 5.4 * (t - 20));
@@ -127,10 +135,48 @@
         return `rgb(${r}, ${g}, ${b})`;
     }
 
+    // Functie om de zon te tekenen
+    function drawSun(solarTemp) {
+        const width = sunCanvas.width;
+        const height = sunCanvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = 20;
+        const rayLength = 10;
+
+        // Maak canvas schoon
+        sunCtx.clearRect(0, 0, width, height);
+
+        // Teken de cirkel met kleur gebaseerd op Solar temperatuur
+        const color = getColorForTemperature(solarTemp || 20);
+        sunCtx.fillStyle = color;
+        sunCtx.beginPath();
+        sunCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        sunCtx.fill();
+        sunCtx.strokeStyle = '#000';
+        sunCtx.lineWidth = 1;
+        sunCtx.stroke();
+
+        // Teken de 8 stralen
+        sunCtx.strokeStyle = '#000';
+        sunCtx.lineWidth = 2;
+        for (let i = 0; i < 8; i++) {
+            const angle = (i * Math.PI) / 4;
+            const startX = centerX + radius * Math.cos(angle);
+            const startY = centerY + radius * Math.sin(angle);
+            const endX = centerX + (radius + rayLength) * Math.cos(angle);
+            const endY = centerY + (radius + rayLength) * Math.sin(angle);
+            sunCtx.beginPath();
+            sunCtx.moveTo(startX, startY);
+            sunCtx.lineTo(endX, endY);
+            sunCtx.stroke();
+        }
+    }
+
     // Functie om de waterboiler te tekenen als zes rechthoeken
     function drawBoiler(temperatures) {
-        const width = canvas.width;
-        const height = canvas.height;
+        const width = boilerCanvas.width;
+        const height = boilerCanvas.height;
         const boilerWidth = 100;
         const boilerHeight = 200;
         const layerHeight = boilerHeight / 6;
@@ -138,7 +184,7 @@
         const y = (height - boilerHeight) / 2;
 
         // Maak canvas schoon
-        ctx.clearRect(0, 0, width, height);
+        boilerCtx.clearRect(0, 0, width, height);
 
         // Teken de lagen van onder naar boven
         const layers = [
@@ -152,30 +198,28 @@
 
         layers.forEach((layer, index) => {
             const layerY = y + (5 - index) * layerHeight;
-            const color = getColorForTemperature(layer.temp || 20); // Default naar 20°C als temp onbekend
+            const color = getColorForTemperature(layer.temp || 20);
 
             // Teken de rechthoekige laag
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.rect(x, layerY, boilerWidth, layerHeight);
-            ctx.fill();
+            boilerCtx.fillStyle = color;
+            boilerCtx.beginPath();
+            boilerCtx.rect(x, layerY, boilerWidth, layerHeight);
+            boilerCtx.fill();
 
             // Teken de rand van de rechthoek
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, layerY, boilerWidth, layerHeight);
+            boilerCtx.strokeStyle = '#000';
+            boilerCtx.lineWidth = 1;
+            boilerCtx.strokeRect(x, layerY, boilerWidth, layerHeight);
 
             // Teken de temperatuurtekst
-            ctx.fillStyle = '#000';
-            ctx.font = '12px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            // Voeg een witte schaduw toe voor betere leesbaarheid
-            ctx.shadowColor = 'white';
-            ctx.shadowBlur = 3;
-            ctx.fillText(`${layer.temp || 'Onbekend'}°C`, x + boilerWidth / 2, layerY + layerHeight / 2);
-            // Reset schaduw
-            ctx.shadowBlur = 0;
+            boilerCtx.fillStyle = '#000';
+            boilerCtx.font = '12px Arial';
+            boilerCtx.textAlign = 'center';
+            boilerCtx.textBaseline = 'middle';
+            boilerCtx.shadowColor = 'white';
+            boilerCtx.shadowBlur = 3;
+            boilerCtx.fillText(`${layer.temp || 'Onbekend'}°C`, x + boilerWidth / 2, layerY + layerHeight / 2);
+            boilerCtx.shadowBlur = 0;
         });
     }
 
@@ -187,15 +231,28 @@
             element.textContent = data[variable] !== undefined ? data[variable] : 'Onbekend';
         });
 
-        // Update het EQtot-label in de boiler-container
+        // Update EQtot in de boiler-container
         const eqtotElement = document.getElementById('status-EQtot');
         eqtotElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
 
-        // Update het duplicaat van EQtot in de lijst
+        // Update duplicaat EQtot in de lijst
         const eqtotDuplicateElement = document.getElementById('status-EQtot-duplicate');
         eqtotDuplicateElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
 
-        // Teken de boiler met de temperatuurwaarden
+        // Update Solar onder de zon
+        const solarElement = document.getElementById('status-Solar-display');
+        solarElement.textContent = data.Solar !== undefined ? data.Solar : 'Onbekend';
+
+        // Bereken en update Tgem (gemiddelde temperatuur)
+        const temps = [
+            parseFloat(data.ETopH), parseFloat(data.ETopL),
+            parseFloat(data.EMidH), parseFloat(data.EMidL),
+            parseFloat(data.EBotH), parseFloat(data.EBotL)
+        ].filter(t => !isNaN(t));
+        const tgem = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : 'Onbekend';
+        document.getElementById('status-Tgem').textContent = tgem;
+
+        // Teken de boiler en zon
         const temperatures = {
             ETopH: parseFloat(data.ETopH),
             ETopL: parseFloat(data.ETopL),
@@ -205,6 +262,7 @@
             EBotL: parseFloat(data.EBotL)
         };
         drawBoiler(temperatures);
+        drawSun(parseFloat(data.Solar));
     }
 
     // Functie om de variabele op te halen
@@ -228,7 +286,5 @@
     // Haal de status op bij laden van de pagina
     fetchStatus();
 </script>
-
 </body>
 </html>
-</xaiArtifact>
