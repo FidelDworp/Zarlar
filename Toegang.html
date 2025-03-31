@@ -69,13 +69,15 @@
     <div class="title">Toegang</div>
 
     <div class="section-container">
-        <h1>Frontdeur</h1>
-        <button id="frontdoor">Frontdeur: Gesloten</button>
+        <h1>Module1</h1>
+        <button id="module1_relais1">Module1_Relais1: Gesloten</button>
+        <button id="module1_relais2">Module1_Relais2: Gesloten</button>
     </div>
 
     <div class="section-container">
-        <h1>Achterdeur</h1>
-        <button id="backdoor">Achterdeur: Gesloten</button>
+        <h1>Module2</h1>
+        <button id="module2_relais1">Module2_Relais1: Gesloten</button>
+        <button id="module2_relais2">Module2_Relais2: Gesloten</button>
     </div>
 
     <div class="button-container">
@@ -83,25 +85,31 @@
     </div>
 
     <script>
-    // Lokale status van de sloten bijhouden
+    // Lokale status van de relais bijhouden
     const lockStates = {
-        frontdoor: false, // false = gesloten (relay off), true = open (relay on)
-        backdoor: false
+        module1_relais1: false, // false = gesloten (relay off), true = open (relay on)
+        module1_relais2: false,
+        module2_relais1: false,
+        module2_relais2: false
     };
 
-    // Configuratie van de apparaten (vervang deze IP-adressen met de echte!)
+    // Configuratie van de apparaten met echte IP-adressen
     const devices = {
-        frontdoor: { ip: '192.168.1.100', switchName: 'Relay 1' },
-        backdoor: { ip: '192.168.1.101', switchName: 'Relay 1' }
+        module1_relais1: { ip: '192.168.1.56', switchName: 'Relay 1' },
+        module1_relais2: { ip: '192.168.1.56', switchName: 'Relay 2' },
+        module2_relais1: { ip: '192.168.1.132', switchName: 'Relay 1' },
+        module2_relais2: { ip: '192.168.1.132', switchName: 'Relay 2' }
     };
 
     // Namen voor leesbare labels
-    const doorNames = {
-        frontdoor: 'Frontdeur',
-        backdoor: 'Achterdeur'
+    const relayNames = {
+        module1_relais1: 'Module1_Relais1',
+        module1_relais2: 'Module1_Relais2',
+        module2_relais1: 'Module2_Relais1',
+        module2_relais2: 'Module2_Relais2'
     };
 
-    // Functie om het slot te toggelen via HTTP-verzoek
+    // Functie om het relais te toggelen via HTTP-verzoek
     function toggleLock(buttonId) {
         const device = devices[buttonId];
         const url = `http://${device.ip}/switch/${encodeURIComponent(device.switchName)}/toggle`;
@@ -114,10 +122,10 @@
                 lockStates[buttonId] = !lockStates[buttonId]; // Toggle lokale status
                 updateButtonStates();
             } else {
-                console.error(`Fout bij het toggelen van ${doorNames[buttonId]}: ${response.status}`);
+                console.error(`Fout bij het toggelen van ${relayNames[buttonId]}: ${response.status}`);
             }
         })
-        .catch(error => console.error(`Netwerkfout bij ${doorNames[buttonId]}:`, error));
+        .catch(error => console.error(`Netwerkfout bij ${relayNames[buttonId]}:`, error));
     }
 
     // Functie om de knoppen bij te werken
@@ -125,14 +133,16 @@
         Object.keys(lockStates).forEach(buttonId => {
             const button = document.getElementById(buttonId);
             const isOpen = lockStates[buttonId];
-            button.textContent = `${doorNames[buttonId]}: ${isOpen ? 'Open' : 'Gesloten'}`;
+            button.textContent = `${relayNames[buttonId]}: ${isOpen ? 'Open' : 'Gesloten'}`;
             button.classList.toggle('on', isOpen);
         });
     }
 
     // Event listeners toevoegen aan de knoppen
-    document.getElementById('frontdoor').addEventListener('click', () => toggleLock('frontdoor'));
-    document.getElementById('backdoor').addEventListener('click', () => toggleLock('backdoor'));
+    document.getElementById('module1_relais1').addEventListener('click', () => toggleLock('module1_relais1'));
+    document.getElementById('module1_relais2').addEventListener('click', () => toggleLock('module1_relais2'));
+    document.getElementById('module2_relais1').addEventListener('click', () => toggleLock('module2_relais1'));
+    document.getElementById('module2_relais2').addEventListener('click', () => toggleLock('module2_relais2'));
 
     // Initialiseer de knoppen bij het laden van de pagina
     updateButtonStates();
