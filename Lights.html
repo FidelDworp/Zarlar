@@ -1,4 +1,3 @@
-<xaiArtifact artifact_id="551f53f3-631f-4b47-814f-696b310bdfad" artifact_version_id="124c3f77-93ce-45be-ad42-c3009b0916f9" title="S-LIGHT.html" contentType="text/html">
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,6 +29,18 @@
         font-family: Arial, sans-serif;
         color: #333;
     }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .section-container {
+        background-color: rgba(128, 128, 128, 0.5); /* Grijs met 50% transparantie */
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
     .button-container {
         display: flex;
         justify-content: center;
@@ -54,50 +65,83 @@
     </style>
 </head>
 <body>
-<h1>BandB</h1>
-    <button id="bandb">BandB licht</button>
-    <button id="buitentrap">Buitentrap</button>
-<h1>Badkamer</h1>
-    <button id="badkamer">Badkamer</button>
-    <button id="leeslampjes">Leeslampjes</button>
-<h1>Inkom</h1>
-    <button id="inkom">Inkom</button>
-    <button id="dressing">Dressing</button>
-    <button id="trap">Trap</button>
-    <button id="traprood">TrapROOD</button>
-    <button id="trapgroen">TrapGROEN</button>
-    <button id="trapblauw">TrapBLAUW</button>
-<h1>Keuken</h1>
-    <button id="spots">Keuken spots, strips</button>
-<h1>Wasplaats</h1>
-    <button id="wasplaats">Wasplaats</button>
-    <button id="toilet">Toilet,Vestiaire</button>
-<h1>Eetplaats</h1>
-    <button id="ramenlow">Ramen LOW</button>
-    <button id="ramenmed">Ramen MED</button>
-    <button id="ramenhi">Ramen HI</button>
-    <button id="tafel">Tafel</button>
-    <button id="bib">Bib</button>
-<h1>Slaapkamer</h1>
-    <button id="buro">Buro</button>
-    <button id="bed">Bed</button>
-<h1>Buitenverlichting</h1>
-    <button id="S">Terras</button>
-    <button id="W2">Veldkant</button>
-    <button id="W1">Voordeur</button>
-<h1>Sunlight</h1>
-    <button id="auto">AUTO</button>
-    <button id="day">Force DAY</button>
-    <button id="night">Force NIGHT</button>
-<h1>HVAC</h1>
-    <button id="home">HOME mode</button>
-    <button id="out">OUT mode</button>
-    <button id="sch">ECO => SCHUUR</button>
-    <button id="won">ECO => WONING</button>
-<div class="button-container">
-    <a href="index.html" class="home-button">Home</a>
-</div>
-<script>
+    <div class="title">Zarlardinge - Schuur</div>
+
+    <div class="section-container">
+        <h1>BandB</h1>
+        <button id="bandb">BandB licht</button>
+        <button id="buitentrap">Buitentrap</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Badkamer</h1>
+        <button id="badkamer">Badkamer</button>
+        <button id="leeslampjes">Leeslampjes</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Inkom</h1>
+        <button id="inkom">Inkom</button>
+        <button id="dressing">Dressing</button>
+        <button id="trap">Trap</button>
+        <button id="traprood">TrapROOD</button>
+        <button id="trapgroen">TrapGROEN</button>
+        <button id="trapblauw">TrapBLAUW</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Keuken</h1>
+        <button id="spots">Keuken spots, strips</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Wasplaats</h1>
+        <button id="wasplaats">Wasplaats</button>
+        <button id="toilet">Toilet,Vestiaire</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Eetplaats</h1>
+        <button id="ramenlow">Ramen LOW</button>
+        <button id="ramenmed">Ramen MED</button>
+        <button id="ramenhi">Ramen HI</button>
+        <button id="tafel">Tafel</button>
+        <button id="bib">Bib</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Slaapkamer</h1>
+        <button id="buro">Buro</button>
+        <button id="bed">Bed</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Buitenverlichting</h1>
+        <button id="S">Terras</button>
+        <button id="W2">Veldkant</button>
+        <button id="W1">Voordeur</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Sunlight</h1>
+        <button id="auto">AUTO</button>
+        <button id="day">Force DAY</button>
+        <button id="night">Force NIGHT</button>
+    </div>
+
+    <div class="section-container">
+        <h1>HVAC</h1>
+        <button id="home">HOME mode</button>
+        <button id="out">OUT mode</button>
+        <button id="sch">ECO => SCHUUR</button>
+        <button id="won">ECO => WONING</button>
+    </div>
+
+    <div class="button-container">
+        <a href="index.html" class="home-button">Home</a>
+    </div>
+
+    <script>
     // Object om de status van elke knop bij te houden
     const buttonStates = {};
 
@@ -249,8 +293,6 @@
 
     // Initialiseer de knoppen bij het laden van de pagina
     updateButtonStates();
-</script>
-
+    </script>
 </body>
 </html>
-</xaiArtifact>
