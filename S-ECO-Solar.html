@@ -43,6 +43,9 @@
         canvas {
             margin-bottom: 10px;
         }
+        .graph-container {
+            margin-top: 15px;
+        }
         .status-container {
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
@@ -91,6 +94,9 @@
         <canvas id="boilerCanvas" width="150" height="300"></canvas>
         <div class="temp-label" id="tgem-label">Tgem = <span id="status-Tgem">Onbekend</span>°C</div>
         <div class="energy-label" id="energy-label">EQtot = <span id="status-EQtot">Onbekend</span> kWh</div>
+        <div class="graph-container">
+            <canvas id="graphCanvas" width="300" height="150"></canvas>
+        </div>
     </div>
     <div class="status-container">
         <p class="status-item"><span class="label">ETopH</span>= <span id="status-ETopH">Onbekend</span></p>
@@ -112,7 +118,7 @@
         <button class="update-button" onclick="fetchStatus()">Update!</button>
         <a href="index.html" class="home-button">Home</a>
     </div>
-<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/particle HouseholdAPI-js@8/dist/particle.min.js"></script>
 <script>
     // Particle API initialiseren
     const particle = new Particle();
@@ -122,17 +128,23 @@
     // Variabelen die we verwachten
     const variables = ['ETopH', 'ETopL', 'EMidH', 'EMidL', 'EBotH', 'EBotL', 'EAv', 'EQtot', 'Solar', 'dT', 'dEQ', 'pwmVal', 'Sun', 'Relay'];
 
-    // Canvas en context voor boiler, zon en pomp
+    // Canvas en context voor boiler, zon, pomp en grafiek
     const boilerCanvas = document.getElementById('boilerCanvas');
     const boilerCtx = boilerCanvas.getContext('2d');
     const sunCanvas = document.getElementById('sunCanvas');
     const sunCtx = sunCanvas.getContext('2d');
     const pumpCanvas = document.getElementById('pumpCanvas');
     const pumpCtx = pumpCanvas.getContext('2d');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const graphCtx = graphCanvas.getContext('2d');
 
     // Variabelen voor pomp animatie
     let pumpAngle = 0;
     let animationFrameId = null;
+
+    // Array voor 24-uurs EQtot data (elk uur een waarde)
+    let eqtotHistory = Array(24).fill(null); // Start met 24 null-waarden
+    let lastUpdateHour = null;
 
     // Functie om temperatuur om te zetten naar een kleur (lichtblauw naar fel rood)
     function getColorForTemperature(temp) {
@@ -188,7 +200,6 @@
 
         pumpCtx.clearRect(0, 0, width, height);
 
-        // Teken de buitenste cirkel, gekleurd op basis van Relay
         pumpCtx.fillStyle = relay === 1 ? 'rgba(255, 182, 193, 0.5)' : 'rgba(173, 216, 230, 0.5)';
         pumpCtx.beginPath();
         pumpCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
@@ -197,7 +208,6 @@
         pumpCtx.lineWidth = 2;
         pumpCtx.stroke();
 
-        // Teken de rotor (zes gebogen schoepen)
         pumpCtx.fillStyle = '#666';
         pumpCtx.save();
         pumpCtx.translate(centerX, centerY);
@@ -216,7 +226,6 @@
         }
         pumpCtx.restore();
 
-        // Bereken rotatiesnelheid: 0 RPM bij pwmVal=0, 20 RPM bij pwmVal=255
         const rpm = (pwmVal / 255) * 20;
         const radiansPerSecond = (rpm * 2 * Math.PI) / 60;
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -275,6 +284,60 @@
         });
     }
 
+    // Functie om de 24-uurs grafiek te tekenen
+    function drawGraph() {
+        const width = graphCanvas.width;
+        const height = graphCanvas.height;
+        const padding = 20;
+        const graphWidth = width - 2 * padding;
+        const graphHeight = height - 2 * padding;
+
+        graphCtx.clearRect(0, 0, width, height);
+
+        // Teken assen
+        graphCtx.strokeStyle = '#000';
+        graphCtx.lineWidth = 1;
+        graphCtx.beginPath();
+        graphCtx.moveTo(padding, padding);
+        graphCtx.lineTo(padding, height - padding);
+        graphCtx.lineTo(width - padding, height - padding);
+        graphCtx.stroke();
+
+        // Bepaal min en max EQtot voor schaling
+        const validData = eqtotHistory.filter(v => v !== null);
+        if (validData.length === 0) return;
+        const minEQtot = Math.min(...validData);
+        const maxEQtot = Math.max(...validData);
+        const range = maxEQtot - minEQtot || 1; // Vermijd деление op 0
+
+        // Teken de lijn
+        graphCtx.strokeStyle = '#007bff';
+        graphCtx.lineWidth = 2;
+        graphCtx.beginPath();
+        eqtotHistory.forEach((value, index) => {
+            if (value !== null) {
+                const x = padding + (index / 23) * graphWidth;
+                const y = height - padding - ((value - minEQtot) / range) * graphHeight;
+                if (index === 0) {
+                    graphCtx.moveTo(x, y);
+                } else {
+                    graphCtx.lineTo(x, y);
+                }
+            }
+        });
+        graphCtx.stroke();
+
+        // Teken labels (elk 6 uur)
+        graphCtx.fillStyle = '#000';
+        graphCtx.font = '10px Arial';
+        graphCtx.textAlign = 'center';
+        graphCtx.textBaseline = 'top';
+        for (let i = 0; i < 24; i += 6) {
+            const x = padding + (i / 23) * graphWidth;
+            graphCtx.fillText(`${-23 + i}h`, x, height - padding + 5);
+        }
+    }
+
     // Functie om de status op de pagina bij te werken
     function updateStatus(data) {
         variables.forEach(variable => {
@@ -284,7 +347,6 @@
 
         const eqtotElement = document.getElementById('status-EQtot');
         eqtotElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
-        // Kleur EQtot-label op basis van dEQ
         const dEQ = parseFloat(data.dEQ);
         eqtotElement.parentElement.style.color = (dEQ > 0) ? 'red' : 'blue';
 
@@ -305,6 +367,14 @@
         const tgem = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : 'Onbekend';
         document.getElementById('status-Tgem').textContent = tgem;
 
+        // Update EQtot geschiedenis
+        const currentHour = new Date().getHours();
+        if (lastUpdateHour !== currentHour && data.EQtot !== undefined) {
+            eqtotHistory.shift(); // Verwijder oudste waarde
+            eqtotHistory.push(parseFloat(data.EQtot)); // Voeg nieuwe waarde toe
+            lastUpdateHour = currentHour;
+        }
+
         const temperatures = {
             ETopH: parseFloat(data.ETopH),
             ETopL: parseFloat(data.ETopL),
@@ -316,6 +386,7 @@
         drawBoiler(temperatures);
         drawSun(parseFloat(data.Solar));
         drawPump(parseFloat(data.pwmVal) || 0, parseFloat(data.Relay) || 0);
+        drawGraph();
     }
 
     // Functie om de variabele op te halen
