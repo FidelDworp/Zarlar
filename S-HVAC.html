@@ -89,8 +89,8 @@
             font-weight: bold;
             padding: 8px 10px;
             text-align: left;
-            background-color: #fff; /* Standaard wit, wordt overschreven door JS */
-            color: #fff; /* Witte tekst voor contrast */
+            background-color: rgb(200, 200, 200); /* Default grijs bij geen data */
+            color: #000; /* Zwarte tekst bij geen data */
             border-radius: 4px;
         }
         .status-container {
@@ -347,12 +347,14 @@
                         valueCell.style.color = '#000';
                     }
 
-                    // Update label achtergrondkleur op basis van Temp1
+                    // Update label achtergrondkleur en tekstkleur op basis van Temp1
                     const tempValue = roomData[labels[index]];
                     if (tempValue !== 'Onbekend' && tempValue !== undefined) {
                         labelCell.style.backgroundColor = getLabelColorForTemperature(tempValue);
+                        labelCell.style.color = '#fff'; // Witte tekst bij geldige data
                     } else {
-                        labelCell.style.backgroundColor = '#fff';
+                        labelCell.style.backgroundColor = 'rgb(200, 200, 200)'; // Grijze achtergrond bij geen data
+                        labelCell.style.color = '#000'; // Zwarte tekst bij geen data
                     }
                 });
             } else {
@@ -383,7 +385,8 @@
                     valueCell.textContent = `${places[index]}: Onbekend%`;
                     valueCell.style.backgroundColor = '#fff';
                     valueCell.style.color = '#000';
-                    labelCell.style.backgroundColor = '#fff';
+                    labelCell.style.backgroundColor = 'rgb(200, 200, 200)'; // Grijze achtergrond bij geen data
+                    labelCell.style.color = '#000'; // Zwarte tekst bij geen data
                 });
             }
 
@@ -434,8 +437,10 @@
                 });
         }
 
-        // Haal de status op bij laden van de pagina
-        fetchStatus();
+        // Haal de status op bij laden van de pagina en toon direct data
+        window.onload = function() {
+            fetchStatus();
+        };
     </script>
 </body>
 </html>
