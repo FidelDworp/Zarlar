@@ -125,7 +125,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 15px;
+            margin-bottom: 20px;
         }
         .update-button, .home-button {
             padding: 10px 20px;
@@ -140,6 +140,34 @@
         }
         .update-button:hover, .home-button:hover {
             background-color: #0056b3;
+        }
+        .toggle-button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .toggle-on {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .toggle-off {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .mode-button, .vent-button, .reset-button, .eco-button {
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .mode-button:hover, .vent-button:hover, .reset-button:hover, .eco-button:hover {
+            background-color: #5a6268;
         }
     </style>
 </head>
@@ -189,39 +217,58 @@
                     <td>B&B</td>
                     <td id="relay-R1">R1: Onbekend</td>
                     <td id="value-BB">BB: Onbekend%</td>
+                    <td><button id="toggle-BB" class="toggle-button toggle-off" onclick="toggleCircuit('bb')">OFF</button></td>
                 </tr>
                 <tr>
                     <td>Wasplaats</td>
                     <td id="relay-R2">R2: Onbekend</td>
                     <td id="value-WP">WP: Onbekend%</td>
+                    <td><button id="toggle-WP" class="toggle-button toggle-off" onclick="toggleCircuit('wp')">OFF</button></td>
                 </tr>
                 <tr>
                     <td>Badkamer</td>
                     <td id="relay-R3">R3: Onbekend</td>
                     <td id="value-BK">BK: Onbekend%</td>
+                    <td><button id="toggle-BK" class="toggle-button toggle-off" onclick="toggleCircuit('bk')">OFF</button></td>
                 </tr>
                 <tr>
                     <td>Zitplaats</td>
                     <td id="relay-R4">R4: Onbekend</td>
                     <td id="value-ZP">ZP: Onbekend%</td>
+                    <td><button id="toggle-ZP" class="toggle-button toggle-off" onclick="toggleCircuit('zp')">OFF</button></td>
                 </tr>
                 <tr>
                     <td>Eetplaats</td>
                     <td id="relay-R5">R5: Onbekend</td>
                     <td id="value-EP">EP: Onbekend%</td>
+                    <td><button id="toggle-EP" class="toggle-button toggle-off" onclick="toggleCircuit('ep')">OFF</button></td>
                 </tr>
                 <tr>
                     <td>Keuken</td>
                     <td id="relay-R6">R6: Onbekend</td>
                     <td id="value-KK">KK: Onbekend%</td>
+                    <td><button id="toggle-KK" class="toggle-button toggle-off" onclick="toggleCircuit('kk')">OFF</button></td>
                 </tr>
                 <tr>
                     <td>Inkom</td>
                     <td id="relay-R7">R7: Onbekend</td>
                     <td id="value-IK">IK: Onbekend%</td>
+                    <td><button id="toggle-IK" class="toggle-button toggle-off" onclick="toggleCircuit('ik')">OFF</button></td>
                 </tr>
             </tbody>
         </table>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <button id="mode-button" class="mode-button" onclick="toggleMode()">Mode: home</button>
+            <button id="vent-button" class="vent-button" onclick="toggleVent()">Vent: off</button>
+            <button id="reset-button" class="reset-button" onclick="toggleReset()">Reset: 5voff</button>
+            <button id="sch-eco-button" class="eco-button" onclick="toggleSchEco()">SCH: off</button>
+            <button id="won-eco-button" class="eco-button" onclick="toggleWonEco()">WON: off</button>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <button class="update-button" onclick="fetchStatus()">Update!</button>
+        <a href="index.html" class="home-button">Home</a>
     </div>
 
     <div class="status-container">
@@ -230,11 +277,6 @@
                 <!-- De tabel wordt dynamisch gevuld door JavaScript -->
             </tbody>
         </table>
-    </div>
-
-    <div class="button-container">
-        <button class="update-button" onclick="fetchStatus()">Update!</button>
-        <a href="index.html" class="home-button">Home</a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
@@ -330,6 +372,7 @@
                     const relayCell = document.getElementById(`relay-${relay}`);
                     const valueCell = document.getElementById(`value-${places[index]}`);
                     const labelCell = relayCell.parentElement.querySelector('td:first-child');
+                    const toggleButton = document.getElementById(`toggle-${places[index]}`);
                     const relayValue = hvacData[relay];
                     const placeValue = hvacData[places[index]];
 
@@ -356,6 +399,17 @@
                         labelCell.style.backgroundColor = 'rgb(200, 200, 200)'; // Grijze achtergrond bij geen data
                         labelCell.style.color = '#000'; // Zwarte tekst bij geen data
                     }
+
+                    // Update toggle button
+                    if (relayValue === 1) {
+                        toggleButton.textContent = 'ON';
+                        toggleButton.classList.remove('toggle-off');
+                        toggleButton.classList.add('toggle-on');
+                    } else {
+                        toggleButton.textContent = 'OFF';
+                        toggleButton.classList.remove('toggle-on');
+                        toggleButton.classList.add('toggle-off');
+                    }
                 });
             } else {
                 // Reset boilers
@@ -380,6 +434,7 @@
                     const relayCell = document.getElementById(`relay-${relay}`);
                     const valueCell = document.getElementById(`value-${places[index]}`);
                     const labelCell = relayCell.parentElement.querySelector('td:first-child');
+                    const toggleButton = document.getElementById(`toggle-${places[index]}`);
                     relayCell.textContent = `${relay}: Onbekend`;
                     relayCell.classList.remove('relay-on');
                     valueCell.textContent = `${places[index]}: Onbekend%`;
@@ -387,6 +442,9 @@
                     valueCell.style.color = '#000';
                     labelCell.style.backgroundColor = 'rgb(200, 200, 200)'; // Grijze achtergrond bij geen data
                     labelCell.style.color = '#000'; // Zwarte tekst bij geen data
+                    toggleButton.textContent = 'OFF';
+                    toggleButton.classList.remove('toggle-on');
+                    toggleButton.classList.add('toggle-off');
                 });
             }
 
@@ -434,6 +492,110 @@
                 .catch(err => {
                     console.error('Fout bij ophalen van data:', err);
                     updateStatus({}, {});
+                });
+        }
+
+        // Functie om een circuit te toggelen
+        function toggleCircuit(circuit) {
+            const toggleButton = document.getElementById(`toggle-${circuit.toUpperCase()}`);
+            const isOn = toggleButton.textContent === 'ON';
+            const command = isOn ? `${circuit}off` : `${circuit}on`;
+
+            particle.callFunction({ deviceId: deviceId, name: 'manual', argument: command, auth: token })
+                .then(response => {
+                    console.log(`Succes: ${command} uitgevoerd, resultaat: ${response.body.return_value}`);
+                    fetchStatus(); // Vernieuw status na commando
+                })
+                .catch(err => {
+                    console.error(`Fout bij uitvoeren van ${command}:`, err);
+                });
+        }
+
+        // Functie om de mode te toggelen
+        let modeIndex = 0;
+        const modes = ['home', 'manual', 'out'];
+        function toggleMode() {
+            modeIndex = (modeIndex + 1) % modes.length;
+            const mode = modes[modeIndex];
+            document.getElementById('mode-button').textContent = `Mode: ${mode}`;
+
+            particle.callFunction({ deviceId: deviceId, name: 'manual', argument: mode, auth: token })
+                .then(response => {
+                    console.log(`Succes: Mode ${mode} uitgevoerd, resultaat: ${response.body.return_value}`);
+                    fetchStatus(); // Vernieuw status na commando
+                })
+                .catch(err => {
+                    console.error(`Fout bij uitvoeren van mode ${mode}:`, err);
+                });
+        }
+
+        // Functie om ventilatie te toggelen
+        let ventIndex = 0;
+        const ventStates = ['ventoff', 'venton', 'ventfull'];
+        function toggleVent() {
+            ventIndex = (ventIndex + 1) % ventStates.length;
+            const vent = ventStates[ventIndex];
+            document.getElementById('vent-button').textContent = `Vent: ${vent.replace('vent', '')}`;
+
+            particle.callFunction({ deviceId: deviceId, name: 'manual', argument: vent, auth: token })
+                .then(response => {
+                    console.log(`Succes: ${vent} uitgevoerd, resultaat: ${response.body.return_value}`);
+                    fetchStatus(); // Vernieuw status na commando
+                })
+                .catch(err => {
+                    console.error(`Fout bij uitvoeren van ${vent}:`, err);
+                });
+        }
+
+        // Functie om reset te toggelen
+        let resetIndex = 0;
+        const resetStates = ['5voff', '5von', 'reset5v'];
+        function toggleReset() {
+            resetIndex = (resetIndex + 1) % resetStates.length;
+            const reset = resetStates[resetIndex];
+            document.getElementById('reset-button').textContent = `Reset: ${reset}`;
+
+            particle.callFunction({ deviceId: deviceId, name: 'manual', argument: reset, auth: token })
+                .then(response => {
+                    console.log(`Succes: ${reset} uitgevoerd, resultaat: ${response.body.return_value}`);
+                    fetchStatus(); // Vernieuw status na commando
+                })
+                .catch(err => {
+                    console.error(`Fout bij uitvoeren van ${reset}:`, err);
+                });
+        }
+
+        // Functie om SCH ECO-pomp te toggelen
+        let schEcoState = false;
+        function toggleSchEco() {
+            schEcoState = !schEcoState;
+            const command = schEcoState ? 'schon' : 'schoff';
+            document.getElementById('sch-eco-button').textContent = `SCH: ${command.replace('sch', '')}`;
+
+            particle.callFunction({ deviceId: deviceId, name: 'manual', argument: command, auth: token })
+                .then(response => {
+                    console.log(`Succes: ${command} uitgevoerd, resultaat: ${response.body.return_value}`);
+                    fetchStatus(); // Vernieuw status na commando
+                })
+                .catch(err => {
+                    console.error(`Fout bij uitvoeren van ${command}:`, err);
+                });
+        }
+
+        // Functie om WON ECO-pomp te toggelen
+        let wonEcoState = false;
+        function toggleWonEco() {
+            wonEcoState = !wonEcoState;
+            const command = wonEcoState ? 'wonon' : 'wonoff';
+            document.getElementById('won-eco-button').textContent = `WON: ${command.replace('won', '')}`;
+
+            particle.callFunction({ deviceId: deviceId, name: 'manual', argument: command, auth: token })
+                .then(response => {
+                    console.log(`Succes: ${command} uitgevoerd, resultaat: ${response.body.return_value}`);
+                    fetchStatus(); // Vernieuw status na commando
+                })
+                .catch(err => {
+                    console.error(`Fout bij uitvoeren van ${command}:`, err);
                 });
         }
 
