@@ -73,7 +73,7 @@
             flex: 1;
         }
         .heating-container {
-            background-color: rgba(255, 255, 255, 0.8); /* Terug naar grijs transparant */
+            background-color: rgba(255, 255, 255, 0.8); /* Grijs transparant, altijd */
             border-radius: 8px;
             padding: 15px;
             max-width: 400px;
@@ -162,7 +162,8 @@
             background-color: #007bff; /* Blauw bij indrukken */
             color: #fff;
         }
-        .mode-manual .toggle-button {
+        /* Mode-classes alleen van toepassing op de toggle-wrapper */
+        .toggle-wrapper.mode-manual .toggle-button {
             display: inline-block; /* Zichtbaar in mode manual */
         }
         .mode-button, .vent-button, .reset-button, .eco-button {
@@ -248,52 +249,54 @@
 
     <div class="heating-container">
         <div class="heat-demand" id="heat-demand">Heat Demand: Onbekend kW</div>
-        <table id="heating-table">
-            <tbody>
-                <tr>
-                    <td>B&B</td>
-                    <td id="relay-R1">R1: Onbekend</td>
-                    <td id="value-BB">BB: Onbekend%</td>
-                    <td><button id="toggle-BB" class="toggle-button toggle-off" onclick="toggleCircuit('bb')">OFF</button></td>
-                </tr>
-                <tr>
-                    <td>Wasplaats</td>
-                    <td id="relay-R2">R2: Onbekend</td>
-                    <td id="value-WP">WP: Onbekend%</td>
-                    <td><button id="toggle-WP" class="toggle-button toggle-off" onclick="toggleCircuit('wp')">OFF</button></td>
-                </tr>
-                <tr>
-                    <td>Badkamer</td>
-                    <td id="relay-R3">R3: Onbekend</td>
-                    <td id="value-BK">BK: Onbekend%</td>
-                    <td><button id="toggle-BK" class="toggle-button toggle-off" onclick="toggleCircuit('bk')">OFF</button></td>
-                </tr>
-                <tr>
-                    <td>Zitplaats</td>
-                    <td id="relay-R4">R4: Onbekend</td>
-                    <td id="value-ZP">ZP: Onbekend%</td>
-                    <td><button id="toggle-ZP" class="toggle-button toggle-off" onclick="toggleCircuit('zp')">OFF</button></td>
-                </tr>
-                <tr>
-                    <td>Eetplaats</td>
-                    <td id="relay-R5">R5: Onbekend</td>
-                    <td id="value-EP">EP: Onbekend%</td>
-                    <td><button id="toggle-EP" class="toggle-button toggle-off" onclick="toggleCircuit('ep')">OFF</button></td>
-                </tr>
-                <tr>
-                    <td>Keuken</td>
-                    <td id="relay-R6">R6: Onbekend</td>
-                    <td id="value-KK">KK: Onbekend%</td>
-                    <td><button id="toggle-KK" class="toggle-button toggle-off" onclick="toggleCircuit('kk')">OFF</button></td>
-                </tr>
-                <tr>
-                    <td>Inkom</td>
-                    <td id="relay-R7">R7: Onbekend</td>
-                    <td id="value-IK">IK: Onbekend%</td>
-                    <td><button id="toggle-IK" class="toggle-button toggle-off" onclick="toggleCircuit('ik')">OFF</button></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="toggle-wrapper">
+            <table id="heating-table">
+                <tbody>
+                    <tr>
+                        <td>B&B</td>
+                        <td id="relay-R1">R1: Onbekend</td>
+                        <td id="value-BB">BB: Onbekend%</td>
+                        <td><button id="toggle-BB" class="toggle-button toggle-off" onclick="toggleCircuit('bb')">OFF</button></td>
+                    </tr>
+                    <tr>
+                        <td>Wasplaats</td>
+                        <td id="relay-R2">R2: Onbekend</td>
+                        <td id="value-WP">WP: Onbekend%</td>
+                        <td><button id="toggle-WP" class="toggle-button toggle-off" onclick="toggleCircuit('wp')">OFF</button></td>
+                    </tr>
+                    <tr>
+                        <td>Badkamer</td>
+                        <td id="relay-R3">R3: Onbekend</td>
+                        <td id="value-BK">BK: Onbekend%</td>
+                        <td><button id="toggle-BK" class="toggle-button toggle-off" onclick="toggleCircuit('bk')">OFF</button></td>
+                    </tr>
+                    <tr>
+                        <td>Zitplaats</td>
+                        <td id="relay-R4">R4: Onbekend</td>
+                        <td id="value-ZP">ZP: Onbekend%</td>
+                        <td><button id="toggle-ZP" class="toggle-button toggle-off" onclick="toggleCircuit('zp')">OFF</button></td>
+                    </tr>
+                    <tr>
+                        <td>Eetplaats</td>
+                        <td id="relay-R5">R5: Onbekend</td>
+                        <td id="value-EP">EP: Onbekend%</td>
+                        <td><button id="toggle-EP" class="toggle-button toggle-off" onclick="toggleCircuit('ep')">OFF</button></td>
+                    </tr>
+                    <tr>
+                        <td>Keuken</td>
+                        <td id="relay-R6">R6: Onbekend</td>
+                        <td id="value-KK">KK: Onbekend%</td>
+                        <td><button id="toggle-KK" class="toggle-button toggle-off" onclick="toggleCircuit('kk')">OFF</button></td>
+                    </tr>
+                    <tr>
+                        <td>Inkom</td>
+                        <td id="relay-R7">R7: Onbekend</td>
+                        <td id="value-IK">IK: Onbekend%</td>
+                        <td><button id="toggle-IK" class="toggle-button toggle-off" onclick="toggleCircuit('ik')">OFF</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <div style="display: flex; flex-direction: column; align-items: center;">
             <button id="mode-button" class="mode-button mode-home" onclick="toggleMode()">Mode: home</button>
             <button id="vent-button" class="vent-button vent-25" onclick="toggleVent()">Vent: on (25%)</button>
@@ -564,10 +567,10 @@
             modeButton.classList.remove(...modeClasses);
             modeButton.classList.add(modeClasses[modeIndex]);
 
-            // Update zichtbaarheid van toggle-knoppen
-            const heatingContainer = document.querySelector('.heating-container');
-            heatingContainer.classList.remove('mode-home', 'mode-manual', 'mode-out');
-            heatingContainer.classList.add(modeClasses[modeIndex]);
+            // Update zichtbaarheid van toggle-knoppen door de mode-klasse toe te passen op de toggle-wrapper
+            const toggleWrapper = document.querySelector('.toggle-wrapper');
+            toggleWrapper.classList.remove('mode-home', 'mode-manual', 'mode-out');
+            toggleWrapper.classList.add(modeClasses[modeIndex]);
 
             particle.callFunction({ deviceId: deviceId, name: 'manual', argument: mode, auth: token })
                 .then(response => {
@@ -663,8 +666,8 @@
         // Haal de status op bij laden van de pagina en toon direct data
         window.onload = function() {
             // Zet initiële mode en zichtbaarheid
-            const heatingContainer = document.querySelector('.heating-container');
-            heatingContainer.classList.add('mode-home');
+            const toggleWrapper = document.querySelector('.toggle-wrapper');
+            toggleWrapper.classList.add('mode-home');
             fetchStatus();
         };
     </script>
