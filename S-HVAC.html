@@ -93,9 +93,9 @@
             color: #000; /* Zwarte tekst bij geen data */
             border-radius: 4px;
         }
-        /* Maak alleen de vierde kolom (met toggle-knoppen) transparant */
-        .toggle-wrapper td:nth-child(4) {
-            background-color: transparent;
+        /* Maak alleen de vierde kolom (met toggle-knoppen) expliciet transparant */
+        .heating-container .toggle-wrapper table td:nth-child(4) {
+            background-color: transparent !important;
         }
         .status-container {
             background-color: rgba(255, 255, 255, 0.8);
@@ -166,9 +166,13 @@
             background-color: #007bff; /* Blauw bij indrukken */
             color: #fff;
         }
-        /* Mode-classes alleen van toepassing op de toggle-wrapper */
+        /* Mode-classes alleen van toepassing op de toggle-wrapper voor zichtbaarheid */
         .toggle-wrapper.mode-manual .toggle-button {
             display: inline-block; /* Zichtbaar in mode manual */
+        }
+        /* Voorkom dat mode-classes de achtergrond van de tabel beïnvloeden */
+        .toggle-wrapper table {
+            background-color: transparent;
         }
         .mode-button, .vent-button, .reset-button, .eco-button {
             padding: 10px 20px;
