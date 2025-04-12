@@ -162,8 +162,8 @@
             background-color: #007bff; /* Blauw bij indrukken */
             color: #fff;
         }
-        .mode-home .toggle-button {
-            display: inline-block; /* Zichtbaar in mode home */
+        .mode-manual .toggle-button {
+            display: inline-block; /* Zichtbaar in mode manual */
         }
         .mode-button, .vent-button, .reset-button, .eco-button {
             padding: 10px 20px;
@@ -353,7 +353,7 @@
             const clampedTemp = Math.max(minTemp, Math.min(maxTemp, temp));
             const ratio = (clampedTemp - minTemp) / (maxTemp - minTemp);
             const r = Math.round(179 + (255 - 179) * ratio); // 179 -> 255
-            const notary = Math.round(229 * (1 - ratio)); // 229 -> 0
+            const g = Math.round(229 * (1 - ratio)); // 229 -> 0
             const b = Math.round(252 * (1 - ratio)); // 252 -> 0
             return `rgb(${r}, ${g}, ${b})`;
         }
