@@ -148,6 +148,7 @@
             cursor: pointer;
             font-size: 12px;
             transition: background-color 0.2s;
+            display: none; /* Default onzichtbaar */
         }
         .toggle-on {
             background-color: #dc3545; /* Rood bij ON */
@@ -160,6 +161,9 @@
         .toggle-pending {
             background-color: #007bff; /* Blauw bij indrukken */
             color: #fff;
+        }
+        .mode-home .toggle-button {
+            display: inline-block; /* Zichtbaar in mode home */
         }
         .mode-button, .vent-button, .reset-button, .eco-button {
             padding: 10px 20px;
@@ -349,7 +353,7 @@
             const clampedTemp = Math.max(minTemp, Math.min(maxTemp, temp));
             const ratio = (clampedTemp - minTemp) / (maxTemp - minTemp);
             const r = Math.round(179 + (255 - 179) * ratio); // 179 -> 255
-            const g = Math.round(229 * (1 - ratio)); // 229 -> 0
+            const notary = Math.round(229 * (1 - ratio)); // 229 -> 0
             const b = Math.round(252 * (1 - ratio)); // 252 -> 0
             return `rgb(${r}, ${g}, ${b})`;
         }
@@ -533,7 +537,8 @@
             const toggleButton = document.getElementById(`toggle-${circuit.toUpperCase()}`);
             toggleButton.classList.remove('toggle-on', 'toggle-off');
             toggleButton.classList.add('toggle-pending');
-            const isOn = toggleButton.textContent === 'ON';
+            toggleButton.textContent = ''; // Geen label in pending state
+            const isOn = toggleButton.classList.contains('toggle-on') || toggleButton.textContent === 'ON';
             const command = isOn ? `${circuit}off` : `${circuit}on`;
 
             particle.callFunction({ deviceId: deviceId, name: 'manual', argument: command, auth: token })
@@ -558,6 +563,11 @@
             modeButton.textContent = `Mode: ${mode}`;
             modeButton.classList.remove(...modeClasses);
             modeButton.classList.add(modeClasses[modeIndex]);
+
+            // Update zichtbaarheid van toggle-knoppen
+            const heatingContainer = document.querySelector('.heating-container');
+            heatingContainer.classList.remove('mode-home', 'mode-manual', 'mode-out');
+            heatingContainer.classList.add(modeClasses[modeIndex]);
 
             particle.callFunction({ deviceId: deviceId, name: 'manual', argument: mode, auth: token })
                 .then(response => {
@@ -652,6 +662,9 @@
 
         // Haal de status op bij laden van de pagina en toon direct data
         window.onload = function() {
+            // Zet initiële mode en zichtbaarheid
+            const heatingContainer = document.querySelector('.heating-container');
+            heatingContainer.classList.add('mode-home');
             fetchStatus();
         };
     </script>
