@@ -153,31 +153,6 @@
     const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
     const deviceId = '310049000f47343432313031'; // S-ECO-solar
 
-    // Functie om berichten toe te voegen aan de lijst
-    function addMessage(message) {
-        const messageList = document.getElementById('message-list');
-        const listItem = document.createElement('li');
-        listItem.textContent = message;
-        messageList.insertBefore(listItem, messageList.firstChild);
-        if (messageList.children.length > 10) {
-            messageList.removeChild(messageList.lastChild);
-        }
-    }
-
-    // Start event stream voor "Solar" events
-    particle.getEventStream({ deviceId: deviceId, name: 'Solar', auth: token })
-        .then(stream => {
-            stream.on('event', data => {
-                if (data && data.data) {
-                    addMessage(data.data);
-                }
-            });
-        })
-        .catch(err => {
-            console.error('Fout bij het opzetten van event stream:', err);
-            addMessage('Fout: Kan statusberichten niet ophalen');
-        });
-
     // Variabelen die we verwachten
     const variables = ['ETopH', 'ETopL', 'EMidH', 'EMidL', 'EBotH', 'EBotL', 'EAv', 'EQtot', 'Solar', 'dT', 'dEQ', 'pwmVal', 'Sun', 'Relay'];
 
@@ -217,8 +192,345 @@
         return `rgba(${r}, ${g}, ${b}, 0.8)`;
     }
 
-    // [De rest van je bestaande functies zoals drawSun, drawPump, drawBoiler, drawGraph, updateStatus, fetchStatus blijven ongewijzigd]
-    // ...
+    // Functie om de zon te tekenen
+    function drawSun(solarTemp) {
+        const width = sunCanvas.width;
+        const height = sunCanvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = 20;
+        const rayLength = 10;
+
+        sunCtx.clearRect(0, 0, width, height);
+
+        const color = getColorForTemperature(solarTemp || 20);
+        sunCtx.fillStyle = color;
+        sunCtx.beginPath();
+        sunCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        sunCtx.fill();
+        sunCtx.strokeStyle = '#000';
+        sunCtx.lineWidth = 1;
+        sunCtx.stroke();
+
+        sunCtx.strokeStyle = '#000';
+        sunCtx.lineWidth = 2;
+        for (let i = 0; i < 8; i++) {
+            const angle = (i * Math.PI) / 4;
+            const startX = centerX + radius * Math.cos(angle);
+            const startY = centerY + radius * Math.sin(angle);
+            const endX = centerX + (radius + rayLength) * Math.cos(angle);
+            const endY = centerY + (radius + rayLength) * Math.sin(angle);
+            sunCtx.beginPath();
+            sunCtx.moveTo(startX, startY);
+            sunCtx.lineTo(endX, endY);
+            sunCtx.stroke();
+        }
+    }
+
+    // Functie om de pomp te tekenen
+    function drawPump(pwmVal, relay) {
+        const width = pumpCanvas.width;
+        const height = pumpCanvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = 20;
+
+        pumpCtx.clearRect(0, 0, width, height);
+
+        pumpCtx.fillStyle = relay === 1 ? 'rgba(255, 182, 193, 0.5)' : 'rgba(173, 216, 230, 0.5)';
+        pumpCtx.beginPath();
+        pumpCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        pumpCtx.fill();
+        pumpCtx.strokeStyle = '#000';
+        pumpCtx.lineWidth = 2;
+        pumpCtx.stroke();
+
+        pumpCtx.fillStyle = '#666';
+        pumpCtx.save();
+        pumpCtx.translate(centerX, centerY);
+        pumpCtx.rotate(pumpAngle);
+
+        for (let i = 0; i < 6; i++) {
+            pumpCtx.beginPath();
+            pumpCtx.moveTo(0, 0);
+            const angle = (i * 2 * Math.PI) / 6;
+            pumpCtx.quadraticCurveTo(
+                10 * Math.cos(angle + Math.PI / 12), 10 * Math.sin(angle + Math.PI / 12),
+                15 * Math.cos(angle), 15 * Math.sin(angle)
+            );
+            pumpCtx.lineTo(0, 0);
+            pumpCtx.fill();
+        }
+        pumpCtx.restore();
+
+        const rpm = (pwmVal / 255) * 20;
+        const radiansPerSecond = (rpm * 2 * Math.PI) / 60;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (radiansPerSecond > 0) {
+            function animatePump(timestamp) {
+                pumpAngle += radiansPerSecond * (1 / 60);
+                drawPump(pwmVal, relay);
+                animationFrameId = requestAnimationFrame(animatePump);
+            }
+            animationFrameId = requestAnimationFrame(animatePump);
+        }
+    }
+
+    // Functie om de waterboiler te tekenen als zes rechthoeken
+    function drawBoiler(temperatures) {
+        const width = boilerCanvas.width;
+        const height = boilerCanvas.height;
+        const boilerWidth = 100;
+        const boilerHeight = 200;
+        const layerHeight = boilerHeight / 6;
+        const x = (width - boilerWidth) / 2;
+        const y = (height - boilerHeight) / 2;
+
+        boilerCtx.clearRect(0, 0, width, height);
+
+        const layers = [
+            { temp: temperatures.EBotL, label: 'EBotL' },
+            { temp: temperatures.EBotH, label: 'EBotH' },
+            { temp: temperatures.EMidL, label: 'EMidL' },
+            { temp: temperatures.EMidH, label: 'EMidH' },
+            { temp: temperatures.ETopL, label: 'ETopL' },
+            { temp: temperatures.ETopH, label: 'ETopH' }
+        ];
+
+        layers.forEach((layer, index) => {
+            const layerY = y + (5 - index) * layerHeight;
+            const color = getColorForTemperature(layer.temp || 20);
+
+            boilerCtx.fillStyle = color;
+            boilerCtx.beginPath();
+            boilerCtx.rect(x, layerY, boilerWidth, layerHeight);
+            boilerCtx.fill();
+
+            boilerCtx.strokeStyle = '#000';
+            boilerCtx.lineWidth = 1;
+            boilerCtx.strokeRect(x, layerY, boilerWidth, layerHeight);
+
+            boilerCtx.fillStyle = '#000';
+            boilerCtx.font = '12px Arial';
+            boilerCtx.textAlign = 'center';
+            boilerCtx.textBaseline = 'middle';
+            boilerCtx.shadowColor = 'white';
+            boilerCtx.shadowBlur = 3;
+            boilerCtx.fillText(`${layer.temp || 'Onbekend'}°C`, x + boilerWidth / 2, layerY + layerHeight / 2);
+            boilerCtx.shadowBlur = 0;
+        });
+    }
+
+    // Functie om de grafiek te tekenen met alle EQtot-waarden van deze sessie
+    function drawGraph() {
+        const width = graphCanvas.width;
+        const height = graphCanvas.height;
+        const padding = 20;
+        const graphWidth = width - 2 * padding;
+        const graphHeight = height - 2 * padding;
+
+        graphCtx.clearRect(0, 0, width, height);
+
+        // Teken assen
+        graphCtx.strokeStyle = '#000';
+        graphCtx.lineWidth = 1;
+        graphCtx.beginPath();
+        graphCtx.moveTo(padding, padding);
+        graphCtx.lineTo(padding, height - padding);
+        graphCtx.lineTo(width - padding, height - padding);
+        graphCtx.stroke();
+
+        // Controleer of er data is
+        const validData = eqtotHistory.filter(entry => entry.value !== null && !isNaN(entry.value));
+        if (validData.length === 0) {
+            graphCtx.fillStyle = '#000';
+            graphCtx.font = '12px Arial';
+            graphCtx.textAlign = 'center';
+            graphCtx.textBaseline = 'middle';
+            graphCtx.fillText('Geen data beschikbaar', width / 2, height / 2);
+            return;
+        }
+
+        // Bepaal min en max EQtot voor schaling
+        const values = validData.map(entry => entry.value);
+        let minEQtot = Math.floor(Math.min(...values));
+        let maxEQtot = Math.ceil(Math.max(...values));
+        if (minEQtot === maxEQtot) {
+            minEQtot -= 1;
+            maxEQtot += 1;
+        }
+        const range = maxEQtot - minEQtot;
+
+        // Teken y-as labels (integers)
+        graphCtx.fillStyle = '#000';
+        graphCtx.font = '10px Arial';
+        graphCtx.textAlign = 'right';
+        graphCtx.textBaseline = 'middle';
+        for (let i = minEQtot; i <= maxEQtot; i++) {
+            const y = height - padding - ((i - minEQtot) / range) * graphHeight;
+            graphCtx.fillText(i, padding - 5, y);
+            // Teken een streepje op de y-as
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding - 3, y);
+            graphCtx.lineTo(padding, y);
+            graphCtx.stroke();
+        }
+
+        // Teken "kW" boven de y-as
+        graphCtx.textAlign = 'center';
+        graphCtx.fillText('kW', padding, padding - 10);
+
+        // Bepaal tijdspanne voor x-as
+        const firstTime = validData[0].timestamp;
+        const lastTime = validData[validData.length - 1].timestamp;
+        const timeSpanMinutes = (lastTime - firstTime) / (1000 * 60);
+
+        // Teken x-as streepjes (per minuut)
+        if (timeSpanMinutes > 0) {
+            const pixelsPerMinute = graphWidth / timeSpanMinutes;
+            for (let minute = 0; minute <= Math.ceil(timeSpanMinutes); minute++) {
+                const x = padding + minute * pixelsPerMinute;
+                graphCtx.beginPath();
+                graphCtx.moveTo(x, height - padding);
+                graphCtx.lineTo(x, height - padding + 5);
+                graphCtx.stroke();
+            }
+        }
+
+        // Teken de lijn
+        graphCtx.strokeStyle = '#007bff';
+        graphCtx.lineWidth = 2;
+        graphCtx.beginPath();
+        let firstPointDrawn = false;
+        validData.forEach((entry) => {
+            const timeSinceStart = (entry.timestamp - firstTime) / (1000 * 60);
+            const x = padding + (timeSpanMinutes > 0 ? (timeSinceStart / timeSpanMinutes) * graphWidth : graphWidth / 2);
+            const y = height - padding - ((entry.value - minEQtot) / range) * graphHeight;
+            if (!firstPointDrawn) {
+                graphCtx.moveTo(x, y);
+                firstPointDrawn = true;
+            } else {
+                graphCtx.lineTo(x, y);
+            }
+        });
+        graphCtx.stroke();
+
+        // Teken de punten
+        graphCtx.fillStyle = '#007bff';
+        validData.forEach((entry) => {
+            const timeSinceStart = (entry.timestamp - firstTime) / (1000 * 60);
+            const x = padding + (timeSpanMinutes > 0 ? (timeSinceStart / timeSpanMinutes) * graphWidth : graphWidth / 2);
+            const y = height - padding - ((entry.value - minEQtot) / range) * graphHeight;
+            graphCtx.beginPath();
+            graphCtx.arc(x, y, 3, 0, Math.PI * 2);
+            graphCtx.fill();
+        });
+    }
+
+    // Functie om de status op de pagina bij te werken
+    function updateStatus(data) {
+        variables.forEach(variable => {
+            const element = document.getElementById(`status-${variable}`);
+            element.textContent = data[variable] !== undefined ? data[variable] : 'Onbekend';
+        });
+
+        const eqtotElement = document.getElementById('status-EQtot');
+        eqtotElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
+        const dEQ = parseFloat(data.dEQ);
+        eqtotElement.parentElement.style.color = (dEQ > 0) ? 'red' : 'blue';
+
+        const eqtotDuplicateElement = document.getElementById('status-EQtot-duplicate');
+        eqtotDuplicateElement.textContent = data.EQtot !== undefined ? data.EQtot : 'Onbekend';
+
+        const solarElement = document.getElementById('status-Solar-display');
+        solarElement.textContent = data.Solar !== undefined ? data.Solar : 'Onbekend';
+
+        const pwmElement = document.getElementById('status-pwmVal-display');
+        pwmElement.textContent = data.pwmVal !== undefined ? data.pwmVal : 'Onbekend';
+
+        const temps = [
+            parseFloat(data.ETopH), parseFloat(data.ETopL),
+            parseFloat(data.EMidH), parseFloat(data.EMidL),
+            parseFloat(data.EBotH), parseFloat(data.EBotL)
+        ].filter(t => !isNaN(t));
+        const tgem = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : 'Onbekend';
+        document.getElementById('status-Tgem').textContent = tgem;
+
+        // Update de achtergrondkleur van de boiler-container op basis van Sun
+        const sunValue = parseFloat(data.Sun);
+        if (!isNaN(sunValue)) {
+            const boilerContainer = document.getElementById('boiler-container');
+            boilerContainer.style.backgroundColor = getBackgroundColor(sunValue);
+        }
+
+        // Voeg EQtot toe aan de geschiedenis met tijdstempel
+        const eqtotValue = parseFloat(data.EQtot);
+        if (!isNaN(eqtotValue)) {
+            eqtotHistory.push({
+                value: eqtotValue,
+                timestamp: Date.now()
+            });
+            console.log('EQtot History:', eqtotHistory);
+        }
+
+        const temperatures = {
+            ETopH: parseFloat(data.ETopH),
+            ETopL: parseFloat(data.ETopL),
+            EMidH: parseFloat(data.EMidH),
+            EMidL: parseFloat(data.EMidL),
+            EBotH: parseFloat(data.EBotH),
+            EBotL: parseFloat(data.EBotL)
+        };
+        drawBoiler(temperatures);
+        drawSun(parseFloat(data.Solar));
+        drawPump(parseFloat(data.pwmVal) || 0, parseFloat(data.Relay) || 0);
+        drawGraph();
+    }
+
+    // Functie om de variabele op te halen
+    function fetchStatus() {
+        particle.getVariable({ deviceId: deviceId, name: 'JSON_temper', auth: token })
+            .then(data => {
+                if (data && data.body && data.body.result) {
+                    const jsonData = JSON.parse(data.body.result);
+                    updateStatus(jsonData);
+                } else {
+                    throw new Error('Ongeldige respons: geen "result" veld');
+                }
+            })
+            .catch(err => {
+                console.error('Fout bij ophalen van variabele:', err);
+                updateStatus({});
+            });
+    }
+
+    // Nieuwe functie om statusberichten toe te voegen
+    function addMessage(message, timestamp) {
+        const messageList = document.getElementById('message-list');
+        const listItem = document.createElement('li');
+        // Toon tijdstempel in lokale tijd (hh:mm:ss)
+        const timeStr = new Date(timestamp).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        listItem.textContent = `${timeStr} - ${message}`;
+        messageList.insertBefore(listItem, messageList.firstChild); // Voeg bovenaan toe
+        // Beperk tot 10 berichten
+        if (messageList.children.length > 10) {
+            messageList.removeChild(messageList.lastChild);
+        }
+    }
+
+    // Start event stream voor "Solar" events
+    particle.getEventStream({ deviceId: deviceId, name: 'Solar', auth: token })
+        .then(stream => {
+            stream.on('event', data => {
+                if (data && data.data && data.published_at) {
+                    addMessage(data.data, data.published_at);
+                }
+            });
+        })
+        .catch(err => {
+            console.error('Fout bij het opzetten van event stream:', err);
+            addMessage('Fout: Kan statusberichten niet ophalen', new Date());
+        });
 
     // Haal de status op bij laden van de pagina
     fetchStatus();
