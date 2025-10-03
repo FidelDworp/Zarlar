@@ -249,7 +249,7 @@
                 if (multiStateButtons[buttonId]) {
                     const stateInfo = multiStateButtons[buttonId];
                     const currentState = stateInfo.states[stateInfo.current];
-                    button.classList.toggle('active', currentState !== 'trapoff' && currentState !== 'ramenoff');
+                    button.classList.toggle('active', currentState !== 'trapoff' && currentState !== 'ramenlowoff');
                     if (buttonId === 'clocktime') {
                         button.textContent = currentState === 'summer' ? 'Zomeruur' : 'Winteruur';
                     } else if (buttonId === 'clockbrightness') {
@@ -257,7 +257,7 @@
                     } else if (buttonId === 'trapcolor') {
                         button.textContent = currentState === 'trapoff' ? 'Trap Uit' : currentState === 'trapon' ? 'Trap' : currentState === 'traproodon' ? 'Trap Rood' : currentState === 'trapgroenon' ? 'Trap Groen' : 'Trap Blauw';
                     } else if (buttonId === 'ramenintensity') {
-                        button.textContent = currentState === 'ramenoff' ? 'Ramen Uit' : currentState === 'ramenhion' ? 'Ramen Hoog' : currentState === 'ramenmedon' ? 'Ramen Medium' : 'Ramen Laag';
+                        button.textContent = currentState === 'ramenlowoff' ? 'Ramen Uit' : currentState === 'ramenhion' ? 'Ramen Hoog' : currentState === 'ramenmedon' ? 'Ramen Medium' : 'Ramen Laag';
                     } else if (buttonId === 'sunlightmode') {
                         button.textContent = currentState === 'auto' ? 'AUTO' : currentState === 'day' ? 'DAY (1000 LUX)' : 'NIGHT (0 LUX)';
                     } else if (buttonId === 'hvacmode') {
