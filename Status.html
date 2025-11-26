@@ -4,97 +4,63 @@
     <title>Zarlardinge - Live Status</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
-        body {
-            background: url("BG.jpg") center/cover no-repeat;
-            font-family: Arial;
-            color: #333;
-            margin: 20px;
-        }
-
-        .title {
-            font-size: 26px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 25px;
-            color: #222;
-            text-shadow: 0px 0px 8px rgba(255,255,255,0.7);
-        }
-
-        .section {
-            background: rgba(255,255,255,0.7);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid rgba(0,0,0,0.15);
-            box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            font-size: 18px;
-            margin: 0 0 10px;
-            color: #111;
-            font-weight: bold;
-        }
-
-        .event {
-            background: rgba(255,255,255,0.9);
-            padding: 8px 10px;
-            margin: 4px 0;
-            border-radius: 6px;
-            font: 13px monospace;
-            border-left: 4px solid #007bff;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .event span {
-            display: inline-block;
-        }
-
-        .time {
-            color: #555;
-            margin-right: 8px;
-            min-width: 70px;
-        }
-
-        .ename {
-            color: #007bff;
-            font-weight: bold;
-            margin-right: 6px;
-        }
-
-        .home {
-            padding: 12px 24px;
-            background: #007bff;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-
-        .home:hover {
-            background: #0056b3;
-        }
-
-        .status {
-            text-align: center;
-            padding: 10px;
-            background: rgba(0, 120, 0, 0.9);
-            color: white;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 25px;
-        }
-
-        .status.error {
-            background: rgba(150, 0, 0, 0.9);
-        }
+    body{
+        background:url("BG.jpg") center/cover no-repeat;
+        font-family:Arial;
+        color:#333;
+        margin:20px;
+    }
+    .title{
+        font-size:24px;
+        font-weight:bold;
+        text-align:center;
+        margin-bottom:20px;
+        color:#333;
+    }
+    .section{
+        background:rgba(128,128,128,0.5);
+        padding:15px;
+        border-radius:10px;
+        margin-bottom:20px;
+        max-height:300px;
+        overflow-y:auto;
+    }
+    h1{
+        font-size:18px;
+        color:#333;
+        margin:0 0 10px;
+    }
+    .event{
+        background:rgba(255,255,255,0.9);
+        color:#333;
+        padding:8px;
+        margin:4px 0;
+        border-radius:5px;
+        font:12px monospace;
+    }
+    .time{ color:#666;margin-right:8px; }
+    .name{ color:#007bff;font-weight:bold; }
+    .home{
+        padding:12px 24px;
+        background:#007bff;
+        color:white;
+        border-radius:5px;
+        text-decoration:none;
+    }
+    .home:hover{ background:#0056b3; }
+    .status{
+        text-align:center;
+        padding:10px;
+        background:rgba(0,120,0,0.9);
+        color:white;
+        border-radius:5px;
+        font-weight:bold;
+    }
     </style>
 </head>
 <body>
 
-<div class="title">Zarlardinge – Live Status Monitor</div>
+<div class="title">Zarlardinge - Live Status Monitor</div>
 
 <div class="section"><h1>Zitplaats</h1><div id="zitplaats"></div></div>
 <div class="section"><h1>BandB</h1><div id="bandb"></div></div>
@@ -112,17 +78,14 @@
     <a href="index.html" class="home">Home</a>
 </div>
 
-<div class="status" id="status">Verbonden – events komen live binnen…</div>
+<div class="status" id="status">Verbonden – events komen live binnen!</div>
 
 <script>
-// ---------------------------------------------------
-// JOUW TOKEN (kan publiek als enkel read-only events)
-// ---------------------------------------------------
+// ---- CONFIG ---------------------------------------------------------
+
 const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
 
-// ---------------------------------------------------
-// Mapping Photon ID → zone
-// ---------------------------------------------------
+// Photon core-ID → DOM-zone
 const map = {
     '410038000547353138383138':'zitplaats',
     '30002c000547343233323032':'bandb',
@@ -137,68 +100,61 @@ const map = {
     '310049000f47343432313031':'solar'
 };
 
-// ---------------------------------------------------
-// START EVENT STREAM
-// ---------------------------------------------------
-let es = null;
-startEventStream();
+// ---- EVENT SOURCE ---------------------------------------------------
 
-function startEventStream() {
-    updateStatus("Verbonden – events komen live binnen…", false);
+const statusDiv = document.getElementById("status");
 
-    es = new EventSource(
-        "https://api.particle.io/v1/devices/events?access_token=" + token
-    );
+// juiste stream:
+const es = new EventSource("https://api.particle.io/v1/devices/events?access_token=" + token);
 
-    es.onmessage = function(e) {
-        let p;
-        try {
-            p = JSON.parse(e.data);
-        } catch {
-            console.warn("Geen JSON:", e.data);
-            return;
-        }
+// Verbonden
+es.onopen = () => {
+    statusDiv.textContent = "Verbonden – events komen live binnen!";
+    statusDiv.style.background = "rgba(0,120,0,0.9)";
+};
 
-        if (!p.coreid) return;         // geen echt device-event
-        const zoneId = map[p.coreid];
-        if (!zoneId) return;
+// Fout → herconnectie
+es.onerror = () => {
+    statusDiv.textContent = "Verbinding verbroken – opnieuw verbinden...";
+    statusDiv.style.background = "rgba(200,50,0,0.9)";
+};
 
-        const zone = document.getElementById(zoneId);
-        if (!zone) return;
+// ---- EVENT VERWERKING -----------------------------------------------
 
-        const eventName = p.event || "Onbekend";
-        const value = p.data || "";
-        const t = new Date(p.published_at)
-            .toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+es.addEventListener("message", function(e) {
+    let payload;
+    try {
+        payload = JSON.parse(e.data);
+    } catch {
+        return;
+    }
 
-        const div = document.createElement("div");
-        div.className = "event";
-        div.innerHTML =
-          `<span><span class="time">${t}</span>
-                 <span class="ename">${eventName}</span>
-                 ${value}</span>`;
+    const coreid = payload.coreid;
+    if (!coreid) return;
 
-        zone.insertBefore(div, zone.firstChild);
+    const zoneId = map[coreid];
+    if (!zoneId) return;
 
-        // Maximum 20 per zone
-        while (zone.children.length > 20) {
-            zone.removeChild(zone.lastChild);
-        }
-    };
+    const zone = document.getElementById(zoneId);
+    if (!zone) return;
 
-    es.onerror = function() {
-        updateStatus("Verbinding verbroken – opnieuw verbinden…", true);
-        es.close();
-        setTimeout(startEventStream, 3000); // auto reconnect
-    };
-}
+    const eventName = payload.event || "Onbekend";
+    const text = payload.data || "";
+    const t = new Date(payload.published_at)
+                .toLocaleTimeString('nl-BE', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 
-function updateStatus(text, error=false) {
-    const st = document.getElementById("status");
-    st.textContent = text;
-    if (error) st.classList.add("error");
-    else st.classList.remove("error");
-}
+    const div = document.createElement("div");
+    div.className = "event";
+    div.innerHTML = `
+        <span class="time">${t}</span>
+        <span class="name">${eventName}</span>:
+        ${text}
+    `;
+
+    zone.insertBefore(div, zone.firstChild);
+    if (zone.children.length > 20)
+        zone.removeChild(zone.lastChild);
+});
 </script>
 
 </body>
