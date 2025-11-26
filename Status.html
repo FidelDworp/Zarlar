@@ -7,7 +7,7 @@
 <style>
 body {
     font-family: Arial;
-    color: #333;
+    color: #000;
     margin: 20px;
     background: url("BG.jpg") center/cover no-repeat;
 }
@@ -18,7 +18,7 @@ body {
     margin-bottom: 20px;
 }
 .section {
-    background: rgba(128,128,128,0.3);
+    background: rgba(255,255,255,0.8);
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -31,11 +31,44 @@ h1 {
 }
 .event {
     background: rgba(255,255,255,0.9);
-    color: #333;
+    color: #000;
     padding: 8px;
     margin: 4px 0;
     border-radius: 5px;
     font: 12px monospace;
+}
+.status {
+    text-align: center;
+    padding: 10px;
+    background: rgba(0,120,0,0.9);
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.home {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 20px;
+}
+.home:hover {
+    background: #0056b3;
+}
+button.simulate {
+    padding: 8px 16px;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: none;
+    background: #28a745;
+    color: white;
+    cursor: pointer;
+}
+button.simulate:hover {
+    background: #218838;
 }
 </style>
 </head>
@@ -55,8 +88,15 @@ h1 {
 <div class="section"><h1>HVAC</h1><div id="hvac"></div></div>
 <div class="section"><h1>ECO Solar</h1><div id="solar"></div></div>
 
+<div style="text-align:center;">
+    <a href="index.html" class="home">Home</a>
+    <button class="simulate" onclick="simulateEvent()">Simuleer test-event</button>
+</div>
+
+<div class="status" id="status">Klaar voor simulatie…</div>
+
 <script>
-const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+// Mapping van device IDs naar zones
 const map = {
     '410038000547353138383138':'zitplaats',
     '30002c000547343233323032':'bandb',
@@ -71,40 +111,28 @@ const map = {
     '310049000f47343432313031':'solar'
 };
 
-// Houd de laatste 20 berichten per controller
+// Logs per device
 const logs = {};
 Object.keys(map).forEach(id => logs[id] = []);
 
-// Polling functie
-async function pollEvents() {
-    try {
-        const resp = await fetch(`https://api.particle.io/v1/events?access_token=${token}&limit=50`);
-        const data = await resp.json();
-        if (!data || !data.events) return;
-
-        data.events.forEach(evt => {
-            const coreid = evt.coreid;
-            const msg = evt.data;
-            const zone = map[coreid];
-            if(!zone) return;
-
-            // update logs
-            logs[coreid].unshift(msg);
-            if(logs[coreid].length > 20) logs[coreid].pop();
-
-            // update DOM
-            const div = document.getElementById(zone);
-            div.innerHTML = logs[coreid].map(m => `<div class="event">${m}</div>`).join('');
-        });
-
-    } catch(e) {
-        console.error('Polling fout:', e);
-    }
+// Simulatie functie
+function simulateEvent() {
+    const deviceIds = Object.keys(map);
+    const coreid = deviceIds[Math.floor(Math.random()*deviceIds.length)];
+    const msg = `Test message ${Math.floor(Math.random()*1000)}`;
+    addMessage(coreid, msg);
+    document.getElementById('status').textContent = `Simulatie: ${msg} → ${map[coreid]}`;
 }
 
-// Start polling elke 2 seconden
-pollEvents();
-setInterval(pollEvents, 2000);
+// Voeg message toe aan logs en DOM
+function addMessage(coreid, msg) {
+    const zone = map[coreid];
+    if(!zone) return;
+    logs[coreid].unshift(msg);
+    if(logs[coreid].length > 20) logs[coreid].pop();
+    const div = document.getElementById(zone);
+    div.innerHTML = logs[coreid].map(m => `<div class="event">${m}</div>`).join('');
+}
 </script>
 
 </body>
