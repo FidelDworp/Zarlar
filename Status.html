@@ -69,8 +69,8 @@
         text-align: center;
         margin: 10px 0;
         padding: 10px;
-        background: rgba(0,255,0,0.1); /* Lage transparantie voor betere leesbaarheid */
-        color: white; /* Witte tekst voor contrast over donkere achtergrond */
+        background: rgba(0, 128, 0, 0.8); /* Donkergroen met hogere dekking voor zichtbaarheid */
+        color: white; /* Witte tekst voor contrast */
         border-radius: 5px;
         font-weight: bold;
     }
@@ -146,49 +146,60 @@
         '310049000f47343432313031': 'solar'
     };
 
-    // Toon indicator dat script draait
+    // Toon indicator
     document.getElementById('status-indicator').style.display = 'block';
 
-    // Live SSE-streaming (exact zoals de browser-truc: /v1/events met token)
+    // Live SSE-streaming met betere error handling en logging
     const eventSource = new EventSource(`https://api.particle.io/v1/events?access_token=${token}`);
 
     eventSource.onmessage = function(event) {
+        console.log('Ruwe event ontvangen:', event.data); // Debug in console
         if (!event.data) return;
         let data;
         try {
             data = JSON.parse(event.data);
+            console.log('Geparsed data:', data); // Debug
         } catch(e) {
-            return; // Skip ongeldige JSON
+            console.error('JSON parse fout:', e, event.data);
+            return;
         }
         if (data.coreid) {
             const zoneId = deviceMap[data.coreid] || 'onbekend';
             const div = document.getElementById(zoneId);
-            if (!div || !data.name) return;
+            if (!div) {
+                console.log('Geen zone gevonden voor coreid:', data.coreid);
+                return;
+            }
+            const eventName = data.name || 'unknown';
+            const eventData = data.data || '';
 
-            // Voorkom snelle duplicaten (simpel check)
+            // Duplicaat-check
             const existing = Array.from(div.children).find(child => 
-                child.innerHTML.includes(data.name) && child.innerHTML.includes(data.data || '')
+                child.innerHTML.includes(eventName) && child.innerHTML.includes(eventData)
             );
             if (existing) return;
 
             const now = new Date().toLocaleTimeString('nl-BE', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             const line = document.createElement('div');
             line.className = 'event';
-            line.innerHTML = `<span class="time">${now}</span><span class="eventname">${data.name}</span>: ${data.data || ''}`;
+            line.innerHTML = `<span class="time">${now}</span><span class="eventname">${eventName}</span>: ${eventData}`;
             div.insertBefore(line, div.firstChild);
-            // Max 20 regels per zone
             while (div.children.length > 20) div.removeChild(div.lastChild);
+            console.log('Event toegevoegd aan zone:', zoneId, eventName, eventData); // Debug
         }
     };
 
     eventSource.onerror = function(err) {
-        console.error('Stream fout:', err); // Alleen in console
-        // Herconnect automatisch na 10 sec bij fout
-        setTimeout(() => {
-            eventSource.close();
-            location.reload();
-        }, 10000);
+        console.error('Stream fout:', err);
+        setTimeout(() => location.reload(), 10000);
     };
+
+    // Optionele test: Verstuur een dummy event naar ECO Solar bij laden (verwijder // om te testen)
+    // fetch('https://api.particle.io/v1/devices/310049000f47343432313031/events', {
+    //     method: 'POST',
+    //     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    //     body: `access_token=${token}&name=Solar&data=Test event van Status pagina!&private=true`
+    // }).then(() => console.log('Test event verstuurd'));
     </script>
 </body>
 </html>
