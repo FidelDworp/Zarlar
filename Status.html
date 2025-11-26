@@ -1,92 +1,119 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Zarlardinge - Live Status</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <style>
-    body{
-        background:url("BG.jpg") center/cover no-repeat;
-        font-family:Arial;
-        color:#333;
-        margin:20px;
-    }
-    .title{
-        font-size:24px;
-        font-weight:bold;
-        text-align:center;
-        margin-bottom:20px;
-        color:#333;
-    }
-    .section{
-        background:rgba(128,128,128,0.5);
-        padding:15px;
-        border-radius:10px;
-        margin-bottom:20px;
-        max-height:300px;
-        overflow-y:auto;
-    }
-    h1{
-        font-size:18px;
-        color:#333;
-        margin:0 0 10px;
-    }
-    .event{
-        background:rgba(255,255,255,0.9);
-        color:#333;
-        padding:8px;
-        margin:4px 0;
-        border-radius:5px;
-        font:12px monospace;
-    }
-    .time{ color:#666;margin-right:8px; }
-    .name{ color:#007bff;font-weight:bold; }
-    .home{
-        padding:12px 24px;
-        background:#007bff;
-        color:white;
-        border-radius:5px;
-        text-decoration:none;
-    }
-    .home:hover{ background:#0056b3; }
-    .status{
-        text-align:center;
-        padding:10px;
-        background:rgba(0,120,0,0.9);
-        color:white;
-        border-radius:5px;
-        font-weight:bold;
-    }
-    </style>
+  <meta charset="utf-8">
+  <title>Zarlardinge - Live Status (debug versie)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:16px;background:#f6f7fb;color:#222}
+    h1{margin:0 0 12px;font-size:20px}
+    .container{display:grid;grid-template-columns: 1fr 420px;gap:16px}
+    .panel{background:white;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+    .title{font-size:24px;margin-bottom:6px}
+    .status{padding:10px;border-radius:6px;margin-top:8px;font-weight:bold}
+    .status.ok{background:rgba(0,140,0,0.12);color:#075a06}
+    .status.warn{background:rgba(210,140,0,0.12);color:#6b4200}
+    .status.err{background:rgba(180,0,0,0.08);color:#7a0b0b}
+    .sections{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .section{background:linear-gradient(180deg,#fff,#fafafa);padding:10px;border-radius:8px;min-height:140px;max-height:360px;overflow:auto;border:1px solid rgba(0,0,0,0.04)}
+    .zone-title{font-weight:bold;margin-bottom:6px}
+    .event{padding:6px;border-radius:6px;margin-bottom:6px;font-family:monospace;background:rgba(0,123,255,0.03);border-left:4px solid rgba(0,123,255,0.12);display:flex;justify-content:space-between}
+    .time{color:#666;margin-right:10px;min-width:70px}
+    .ename{color:#007bff;font-weight:bold;margin-right:6px}
+    .meta{font-size:13px;color:#555;margin-top:6px}
+    .debug{font-family:monospace;font-size:12px;white-space:pre-wrap;overflow:auto;max-height:220px;padding:8px;background:#111;color:#dcdcdc;border-radius:6px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    button{padding:8px 10px;border-radius:6px;border:1px solid #bbb;background:#fff;cursor:pointer}
+    button.primary{background:#007bff;color:white;border-color:#0062d6}
+    .small{font-size:12px;color:#444}
+    .muted{color:#666;font-size:13px}
+    .rightcol .panel{margin-bottom:12px}
+    label{display:block;font-size:13px;margin:6px 0}
+    input[type=text]{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px}
+  </style>
 </head>
 <body>
+  <div class="title">Zarlardinge — Live Status (diagnostic)</div>
+  <div class="muted">Deze debugversie geeft veel extra informatie om te zien waarom events niet bij de zones terechtkomen.</div>
+  <hr style="margin:12px 0">
 
-<div class="title">Zarlardinge - Live Status Monitor</div>
+  <div class="container">
+    <!-- left: dashboard -->
+    <div>
+      <div class="panel">
+        <h1>Live panels</h1>
+        <div class="meta">Tijdstempel = gepubliceerd door Particle (published_at). Event stream = <code>/v1/devices/events</code></div>
+        <div style="margin-top:12px" id="summary"></div>
+      </div>
 
-<div class="section"><h1>Zitplaats</h1><div id="zitplaats"></div></div>
-<div class="section"><h1>BandB</h1><div id="bandb"></div></div>
-<div class="section"><h1>Badkamer</h1><div id="badkamer"></div></div>
-<div class="section"><h1>Inkom</h1><div id="inkom"></div></div>
-<div class="section"><h1>Keuken</h1><div id="keuken"></div></div>
-<div class="section"><h1>Wasplaats</h1><div id="wasplaats"></div></div>
-<div class="section"><h1>Eetplaats / Slaapkamer</h1><div id="eetplaats"></div></div>
-<div class="section"><h1>Buitenverlichting</h1><div id="buiten"></div></div>
-<div class="section"><h1>Sunlight</h1><div id="sunlight"></div></div>
-<div class="section"><h1>HVAC</h1><div id="hvac"></div></div>
-<div class="section"><h1>ECO Solar</h1><div id="solar"></div></div>
+      <div class="panel" style="margin-top:12px">
+        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+          <div><strong>Zones</strong> — laatste events</div>
+          <div class="small muted">Max 20 per zone</div>
+        </div>
 
-<div style="text-align:center;margin:30px 0">
-    <a href="index.html" class="home">Home</a>
-</div>
+        <div class="sections" style="margin-top:10px">
+          <div class="section"><div class="zone-title">Zitplaats</div><div id="zitplaats"></div></div>
+          <div class="section"><div class="zone-title">BandB</div><div id="bandb"></div></div>
+          <div class="section"><div class="zone-title">Badkamer</div><div id="badkamer"></div></div>
+          <div class="section"><div class="zone-title">Inkom</div><div id="inkom"></div></div>
+          <div class="section"><div class="zone-title">Keuken</div><div id="keuken"></div></div>
+          <div class="section"><div class="zone-title">Wasplaats</div><div id="wasplaats"></div></div>
+          <div class="section"><div class="zone-title">Eetplaats / Slaapkamer</div><div id="eetplaats"></div></div>
+          <div class="section"><div class="zone-title">Buitenverlichting</div><div id="buiten"></div></div>
+          <div class="section"><div class="zone-title">Sunlight</div><div id="sunlight"></div></div>
+          <div class="section"><div class="zone-title">HVAC</div><div id="hvac"></div></div>
+          <div class="section"><div class="zone-title">ECO Solar</div><div id="solar"></div></div>
+          <div class="section"><div class="zone-title">Onbekend (niet gemapped)</div><div id="onbekend"></div></div>
+        </div>
+      </div>
+    </div>
 
-<div class="status" id="status">Verbonden – events komen live binnen!</div>
+    <!-- right: debug + controls -->
+    <div class="rightcol">
+      <div class="panel">
+        <strong>Status</strong>
+        <div id="statusBox" class="status ok" style="margin-top:8px">Initialiseer...</div>
 
-<script>
-// ---- CONFIG ---------------------------------------------------------
+        <div class="meta" style="margin-top:8px">
+          <div id="stats">readyState: - ; events: 0 ; last: —</div>
+        </div>
 
-const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+        <div class="controls" style="margin-top:10px">
+          <button id="btnFetch" class="primary">Fetch check (token & CORS)</button>
+          <button id="btnShowRaw">Toggle raw stream log</button>
+          <button id="btnSim">Simuleer test-event</button>
+        </div>
 
-// Photon core-ID → DOM-zone
-const map = {
+        <label for="streamUrl">Stream URL (readonly)</label>
+        <input type="text" id="streamUrl" readonly>
+
+        <label for="tokenInput">Token (read-only)</label>
+        <input type="text" id="tokenInput" readonly>
+
+        <div style="margin-top:8px" class="small muted">
+          Tip: open DevTools → Console / Network (filter "event-stream") om Live SSE-verbinding te inspecteren.
+        </div>
+      </div>
+
+      <div class="panel">
+        <strong>Raw SSE / laatste events</strong>
+        <div id="raw" class="debug" style="display:none"></div>
+      </div>
+
+      <div class="panel">
+        <strong>Event-log (pagina)</strong>
+        <div id="log" class="debug" style="max-height:160px"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ---------------- CONFIG --------------------------------------------
+  const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b'; // pas aan indien nodig
+
+  // Mapping (ik voegde de 290044 coreid toe die ik zag in jouw stream)
+  const map = {
     '410038000547353138383138':'zitplaats',
     '30002c000547343233323032':'bandb',
     '5600420005504b464d323520':'badkamer',
@@ -97,65 +124,232 @@ const map = {
     '2d0032001247333438353733':'buiten',
     '390028001147343339383037':'sunlight',
     '3e003f001447343338333633':'hvac',
-    '310049000f47343432313031':'solar'
-};
+    '310049000f47343432313031':'solar',
+    // extra die in jouw stream verscheen:
+    '290044000147353138383138':'hvac'
+  };
 
-// ---- EVENT SOURCE ---------------------------------------------------
+  // stream URL
+  const streamUrl = "https://api.particle.io/v1/devices/events?access_token=" + token;
 
-const statusDiv = document.getElementById("status");
+  // DOM shortcuts
+  const statusBox = document.getElementById('statusBox');
+  const stats = document.getElementById('stats');
+  const streamUrlInput = document.getElementById('streamUrl');
+  const tokenInput = document.getElementById('tokenInput');
+  const rawDiv = document.getElementById('raw');
+  const logDiv = document.getElementById('log');
+  streamUrlInput.value = streamUrl;
+  tokenInput.value = token;
 
-// juiste stream:
-const es = new EventSource("https://api.particle.io/v1/devices/events?access_token=" + token);
+  // counters & state
+  let eventCount = 0;
+  let lastReceived = null;
+  let es = null;
+  const rawLines = [];
+  const RAW_LINES_MAX = 200;
+  const heartbeatTimeoutMs = 25_000; // warn als 25s zonder events
+  let hbTimer = null;
 
-// Verbonden
-es.onopen = () => {
-    statusDiv.textContent = "Verbonden – events komen live binnen!";
-    statusDiv.style.background = "rgba(0,120,0,0.9)";
-};
+  // helper: append to raw log (SSE text)
+  function appendRawLine(line) {
+    rawLines.push(line);
+    if (rawLines.length > RAW_LINES_MAX) rawLines.shift();
+    rawDiv.textContent = rawLines.join('\\n');
+  }
 
-// Fout → herconnectie
-es.onerror = () => {
-    statusDiv.textContent = "Verbinding verbroken – opnieuw verbinden...";
-    statusDiv.style.background = "rgba(200,50,0,0.9)";
-};
+  // helper: append page log
+  function pageLog(line) {
+    const t = new Date().toLocaleTimeString('nl-BE');
+    logDiv.textContent = `${t} ${line}\\n` + logDiv.textContent;
+    if (logDiv.textContent.length > 20000) logDiv.textContent = logDiv.textContent.slice(0,20000);
+    console.log(line);
+  }
 
-// ---- EVENT VERWERKING -----------------------------------------------
+  // update status UI
+  function updateStatus(text, severity='ok') {
+    statusBox.textContent = text;
+    statusBox.className = 'status ' + (severity === 'ok' ? 'ok' : severity === 'warn' ? 'warn' : 'err');
+    stats.textContent = `readyState: ${es ? es.readyState : 'n/a'} ; events: ${eventCount} ; last: ${lastReceived || '—'}`;
+  }
 
-es.addEventListener("message", function(e) {
-    let payload;
-    try {
-        payload = JSON.parse(e.data);
-    } catch {
-        return;
+  // heartbeat
+  function resetHeartbeat() {
+    if (hbTimer) clearTimeout(hbTimer);
+    hbTimer = setTimeout(()=> {
+      updateStatus('Geen events in ' + (heartbeatTimeoutMs/1000) + 's — controleer stream / CORS / token', 'warn');
+      pageLog('Heartbeat: geen events ontvangen binnen timeout');
+    }, heartbeatTimeoutMs);
+  }
+
+  // create or recreate EventSource with hooks
+  function startStream() {
+    if (es) {
+      try { es.close(); } catch (e) {}
+      es = null;
     }
 
-    const coreid = payload.coreid;
-    if (!coreid) return;
+    eventCount = 0;
+    lastReceived = null;
+    updateStatus('Initialiseer event-stream...', 'warn');
 
-    const zoneId = map[coreid];
-    if (!zoneId) return;
+    // open raw fetch to capture initial headers (optional)
+    // Start SSE
+    try {
+      es = new EventSource(streamUrl);
+    } catch (err) {
+      updateStatus('EventSource init faalde: ' + err.message, 'err');
+      pageLog('EventSource constructor error: ' + err.message);
+      return;
+    }
 
-    const zone = document.getElementById(zoneId);
-    if (!zone) return;
+    // monitor readyState occasionally
+    setTimeout(()=> { updateStatus('EventSource status: ' + es.readyState, es.readyState === 1 ? 'ok' : 'warn'); }, 800);
 
-    const eventName = payload.event || "Onbekend";
-    const text = payload.data || "";
-    const t = new Date(payload.published_at)
-                .toLocaleTimeString('nl-BE', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    // low-level open
+    es.onopen = function() {
+      updateStatus('Verbonden met Particle SSE', 'ok');
+      appendRawLine('[open] ' + new Date().toISOString());
+      pageLog('SSE open');
+      resetHeartbeat();
+    };
 
-    const div = document.createElement("div");
-    div.className = "event";
-    div.innerHTML = `
-        <span class="time">${t}</span>
-        <span class="name">${eventName}</span>:
-        ${text}
-    `;
+    es.onerror = function(evt) {
+      // readyState: 0 = connecting, 1 = open, 2 = closed
+      const rs = es.readyState;
+      let msg = 'SSE fout (readyState=' + rs + ')';
+      if (rs === 0) msg = 'SSE: connecting...';
+      else if (rs === 2) msg = 'SSE: connection closed';
+      updateStatus(msg, rs === 1 ? 'ok' : 'err');
+      appendRawLine('[error] ' + new Date().toISOString() + ' state=' + rs);
+      pageLog('SSE error, readyState=' + rs + ' — check Console/Network for details');
+      // keep EventSource object as browser will auto-retry; if closed, restart after delay
+      if (rs === 2) {
+        pageLog('SSE closed, probeer opnieuw in 3s');
+        setTimeout(startStream, 3000);
+      }
+    };
 
+    // raw event stream: browsers don't expose raw lines easily, so we capture standard events and also add a fetch-check elsewhere
+    es.addEventListener('message', function(e) {
+      // e.data is JSON string with coreid, data, event, published_at
+      appendRawLine('[message] ' + e.data);
+      eventCount++;
+      lastReceived = new Date().toLocaleTimeString('nl-BE');
+      resetHeartbeat();
+
+      // parse JSON safely
+      let payload = null;
+      try { payload = JSON.parse(e.data); } catch(err) {
+        pageLog('Kon event payload niet parsen: ' + err.message);
+        return;
+      }
+      // log meta
+      pageLog('Ontvangen event: ' + (payload.event || '—') + ' core:' + (payload.coreid || '—'));
+
+      // decide zone
+      const coreid = payload.coreid || 'onbekend';
+      const zoneId = map[coreid] || 'onbekend';
+      const zone = document.getElementById(zoneId);
+      if (!zone) {
+        pageLog('Zone DOM niet gevonden voor ' + zoneId);
+        return;
+      }
+
+      // compose event line
+      const t = payload.published_at ? new Date(payload.published_at).toLocaleTimeString('nl-BE') : new Date().toLocaleTimeString('nl-BE');
+      const eventName = payload.event || 'Onbekend';
+      const text = payload.data || '';
+
+      const div = document.createElement('div');
+      div.className = 'event';
+      div.innerHTML = `<div><span class="time">${t}</span><span class="ename">${eventName}</span>${text}</div>
+                       <div style="opacity:0.6;font-size:12px">${coreid.slice(-6)}</div>`;
+
+      zone.insertBefore(div, zone.firstChild);
+      while (zone.children.length > 20) zone.removeChild(zone.lastChild);
+
+      // update status
+      updateStatus('Event ontvangen: ' + eventName + ' — ' + t, 'ok');
+    });
+
+    // expose es on window for debugging in console
+    window._es = es;
+  }
+
+  // fetch check (one-shot) to see HTTP result & CORS
+  async function fetchCheck() {
+    pageLog('Fetch check gestart...');
+    try {
+      const resp = await fetch(streamUrl, { method: 'GET', headers: { 'Accept': 'text/event-stream' }});
+      pageLog('Fetch status: ' + resp.status + ' ' + resp.statusText);
+      const ct = resp.headers.get('content-type') || '';
+      pageLog('Content-Type: ' + ct);
+      if (!resp.ok) {
+        updateStatus('Fetch faalde: ' + resp.status + ' — token of permissies?', 'err');
+      } else {
+        updateStatus('Fetch OK (server bereikbaar). Controleer Network tab voor SSE.', 'ok');
+      }
+      // try to read a small chunk (may hang if stream) — we read first 400 bytes only
+      const reader = resp.body && resp.body.getReader ? resp.body.getReader() : null;
+      if (reader) {
+        const { value, done } = await reader.read().catch(e=>({done:true}));
+        if (!done && value) {
+          const txt = new TextDecoder().decode(value);
+          appendRawLine('[fetch chunk] ' + txt.slice(0,400).replace(/\\n/g,'\\n'));
+        } else {
+          appendRawLine('[fetch chunk] geen data of stream');
+        }
+        try { reader.cancel(); } catch(e){}
+      } else {
+        appendRawLine('[fetch] geen readable stream beschikbaar in dit browsercontext');
+      }
+    } catch (err) {
+      updateStatus('Fetch error: ' + err.message, 'err');
+      pageLog('Fetch exception: ' + err.message);
+    }
+  }
+
+  // simulate a local event (for UI testing)
+  function simulateEvent() {
+    const sample = {
+      coreid: 'SIM-000000000000',
+      event: 'test-sim',
+      data: 'hello from simulated',
+      published_at: new Date().toISOString()
+    };
+    appendRawLine('[sim] ' + JSON.stringify(sample));
+    // put simulated in "onbekend" zone
+    const zone = document.getElementById('onbekend');
+    const div = document.createElement('div');
+    div.className = 'event';
+    const t = new Date(sample.published_at).toLocaleTimeString('nl-BE');
+    div.innerHTML = `<div><span class="time">${t}</span><span class="ename">${sample.event}</span>${sample.data}</div>
+                     <div style="opacity:0.6;font-size:12px">SIM</div>`;
     zone.insertBefore(div, zone.firstChild);
-    if (zone.children.length > 20)
-        zone.removeChild(zone.lastChild);
-});
-</script>
+    eventCount++; lastReceived = new Date().toLocaleTimeString('nl-BE');
+    updateStatus('Simulated event created', 'ok');
+  }
 
+  // wire buttons
+  document.getElementById('btnFetch').addEventListener('click', ()=>{ fetchCheck(); });
+  document.getElementById('btnShowRaw').addEventListener('click', ()=>{ rawDiv.style.display = rawDiv.style.display === 'none' ? 'block' : 'none'; });
+  document.getElementById('btnSim').addEventListener('click', simulateEvent);
+
+  // init
+  pageLog('Pagina geladen — start Stream...');
+  startStream();
+  resetHeartbeat();
+
+  // expose helpers for devtools
+  window.zarl = { startStream, fetchCheck, simulateEvent, map, token };
+
+  // extra: if no events in 10s after open, advise
+  setTimeout(()=> {
+    if (!lastReceived) {
+      pageLog('Geen events zichtbaar binnen 10s; als de browser fetch OK toonde, kijk naar Network tab (event-stream) of Console (CORS/mixed-content).');
+    }
+  }, 10000);
+  </script>
 </body>
 </html>
