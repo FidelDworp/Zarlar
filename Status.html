@@ -45,10 +45,11 @@ const map = {
     '3e003f001447343338333633':'hvac','310049000f47343432313031':'solar'
 };
 
-// DIT IS DE ENIGE TRUC: "/dummy" toegevoegd → werkt met jouw customer-token
+// DEZE REGEL IS CORRECT (dummy prefix)
 const es = new EventSource('https://api.particle.io/v1/events/dummy?access_token='+token);
 
-es.onmessage = e => {
+// DIT IS DE ENIGE AANPASSING DIE NODIG WAS:
+es.addEventListener('message', function(e) {
     try {
         const msg = JSON.parse(e.data);
         if (!msg.coreid) return;
@@ -59,8 +60,12 @@ es.onmessage = e => {
         div.innerHTML = `<span class="time">${t}</span><span class="name">${msg.name||'?'}</span>: ${msg.data||''}`;
         zone.insertBefore(div, zone.firstChild);
         if (zone.children.length > 20) zone.removeChild(zone.lastChild);
-    } catch(err) {}
-};
+    } catch(err) { console.error('Parse error:', err); }
+});
+
+// Optioneel: toon in console dat het werkt
+es.addEventListener('open', () => console.log('Particle stream verbonden!'));
+es.addEventListener('error', (err) => console.log('Stream error (normaal bij lange verbinding):', err));
 </script>
 </body>
 </html>
