@@ -65,6 +65,15 @@
     .home-button:hover {
         background-color: #0056b3;
     }
+    .status-indicator {
+        text-align: center;
+        margin: 10px 0;
+        padding: 10px;
+        background: rgba(0,255,0,0.2);
+        color: #333;
+        border-radius: 5px;
+        font-weight: bold;
+    }
     </style>
 </head>
 <body>
@@ -119,6 +128,8 @@
         <a href="index.html" class="home-button">Home</a>
     </div>
 
+    <div id="status-indicator" class="status-indicator" style="display:none;">Verbonden: Polling actief (elke 5 sec)</div>
+
     <script>
     const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
     const deviceMap = {
@@ -135,36 +146,44 @@
         '310049000f47343432313031': 'solar'
     };
 
-    // Polling-functie: haalt events op elke 5 sec (exact zoals Lights.html requests werken)
+    // Toon indicator dat script draait
+    document.getElementById('status-indicator').style.display = 'block';
+
+    // Polling-functie: haalt recente events op (limit 50 voor recente data)
     async function fetchEvents() {
         try {
-            const response = await fetch(`https://api.particle.io/v1/events?access_token=${token}&limit=20`);
-            if (!response.ok) throw new Error('API response niet OK');
+            const response = await fetch(`https://api.particle.io/v1/events?access_token=${token}&limit=50`);
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
             const events = await response.json();
             events.forEach(eventData => {
                 if (eventData.coreid) {
                     const zoneId = deviceMap[eventData.coreid] || 'onbekend';
                     const div = document.getElementById(zoneId);
-                    if (!div || !eventData.name) return;  // Skip als geen zone of geen event-naam
+                    if (!div || !eventData.name) return;
+
+                    // Voorkom duplicaten: check of dit event al bestaat (simpel op naam + data)
+                    const existing = Array.from(div.children).find(child => 
+                        child.innerHTML.includes(eventData.name) && child.innerHTML.includes(eventData.data || '')
+                    );
+                    if (existing) return;  // Skip duplicaat
 
                     const now = new Date().toLocaleTimeString('nl-BE', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
                     const line = document.createElement('div');
                     line.className = 'event';
                     line.innerHTML = `<span class="time">${now}</span><span class="eventname">${eventData.name}</span>: ${eventData.data || ''}`;
                     div.insertBefore(line, div.firstChild);
-                    // Max 20 regels per zone (oudste verdwijnt)
+                    // Max 20 regels per zone
                     while (div.children.length > 20) div.removeChild(div.lastChild);
                 }
             });
         } catch (err) {
-            console.error('Polling fout:', err);  // Check console voor details
-            // Geen rode melding meer – polling herstelt zichzelf
+            console.error('Polling fout:', err);  // Alleen in console, geen blokkerende melding
         }
     }
 
-    // Start polling: eerste keer meteen, daarna elke 5 sec
-    fetchEvents();
-    setInterval(fetchEvents, 5000);
+    // Start polling
+    fetchEvents();  // Eerste keer meteen
+    setInterval(fetchEvents, 5000);  // Elke 5 sec
     </script>
 </body>
 </html>
