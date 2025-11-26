@@ -11,14 +11,13 @@
     .event{background:rgba(255,255,255,0.9);color:#333;padding:8px;margin:4px 0;border-radius:5px;font:12px monospace}
     .time{color:#666;margin-right:8px}
     .name{color:#007bff;font-weight:bold}
-    .home{padding:12px 24px;background:#007bff;color:white;border-radius:5px;text-decoration:none;display:inline-block}
+    .home{padding:12px 24px;background:#007bff;color:white;border-radius:5px;text-decoration:none}
     .home:hover{background:#0056b3}
     .status{text-align:center;padding:10px;background:rgba(0,120,0,0.9);color:white;border-radius:5px;font-weight:bold}
     </style>
 </head>
 <body>
 <div class="title">Zarlardinge - Live Status Monitor</div>
-
 <div class="section"><h1>Zitplaats</h1><div id="zitplaats"></div></div>
 <div class="section"><h1>BandB</h1><div id="bandb"></div></div>
 <div class="section"><h1>Badkamer</h1><div id="badkamer"></div></div>
@@ -30,10 +29,7 @@
 <div class="section"><h1>Sunlight</h1><div id="sunlight"></div></div>
 <div class="section"><h1>HVAC</h1><div id="hvac"></div></div>
 <div class="section"><h1>ECO Solar</h1><div id="solar"></div></div>
-
-<div style="text-align:center;margin:30px 0">
-    <a href="index.html" class="home">Home</a>
-</div>
+<div style="text-align:center;margin:30px 0"><a href="index.html" class="home">Home</a></div>
 <div class="status">Verbonden – events komen live binnen!</div>
 
 <script>
@@ -45,27 +41,33 @@ const map = {
     '3e003f001447343338333633':'hvac','310049000f47343432313031':'solar'
 };
 
-// DEZE REGEL IS CORRECT (dummy prefix)
 const es = new EventSource('https://api.particle.io/v1/events/dummy?access_token='+token);
 
-// DIT IS DE ENIGE AANPASSING DIE NODIG WAS:
 es.addEventListener('message', function(e) {
+    let payload;
     try {
-        const msg = JSON.parse(e.data);
-        if (!msg.coreid) return;
-        const zone = document.getElementById(map[msg.coreid] || 'solar');
-        const t = new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-        const div = document.createElement('div');
-        div.className='event';
-        div.innerHTML = `<span class="time">${t}</span><span class="name">${msg.name||'?'}</span>: ${msg.data||''}`;
-        zone.insertBefore(div, zone.firstChild);
-        if (zone.children.length > 20) zone.removeChild(zone.lastChild);
-    } catch(err) { console.error('Parse error:', err); }
-});
+        payload = JSON.parse(e.data);
+    } catch(err) { return; }
 
-// Optioneel: toon in console dat het werkt
-es.addEventListener('open', () => console.log('Particle stream verbonden!'));
-es.addEventListener('error', (err) => console.log('Stream error (normaal bij lange verbinding):', err));
+    // Particle geeft met /dummy geen .name → we nemen het uit de event-naam of fallback
+    const eventName = e.lastEventId || payload.name || 'Onbekend';
+
+    const coreid = payload.coreid;
+    if (!coreid) return;
+
+    const zoneId = map[coreid] || 'solar';
+    const zone = document.getElementById(zoneId);
+    if (!zone) return;
+
+    const text = payload.data || '';
+
+    const t = new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const div = document.createElement('div');
+    div.className = 'event';
+    div.innerHTML = `<span class="time">${t}</span><span class="name">${eventName}</span>: ${text}`;
+    zone.insertBefore(div, zone.firstChild);
+    if (zone.children.length > 20) zone.removeChild(zone.lastChild);
+});
 </script>
 </body>
 </html>
