@@ -5,15 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zarlardinge - Live Status</title>
 <style>
-body{background:#f0f0f0;font-family:Arial;color:#333;margin:20px}
-.title{font-size:24px;font-weight:bold;text-align:center;margin-bottom:20px}
-.section{background:rgba(128,128,128,0.3);padding:15px;border-radius:10px;margin-bottom:20px;max-height:300px;overflow-y:auto}
-h1{font-size:18px;margin:0 0 10px}
-.event{background:rgba(255,255,255,0.9);color:#333;padding:8px;margin:4px 0;border-radius:5px;font:12px monospace}
-.time{color:#666;margin-right:8px}
-.name{color:#007bff;font-weight:bold}
-.status{text-align:center;padding:10px;background:rgba(0,120,0,0.9);color:white;border-radius:5px;font-weight:bold}
-#debug{background:#222;color:#0f0;padding:10px;font-family:monospace;height:150px;overflow-y:auto;border-radius:5px;margin-top:20px}
+body {
+    font-family: Arial;
+    color: #333;
+    margin: 20px;
+    background: url("BG.jpg") center/cover no-repeat;
+}
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.section {
+    background: rgba(128,128,128,0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+h1 {
+    font-size: 18px;
+    margin: 0 0 10px;
+}
+.event {
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    padding: 8px;
+    margin: 4px 0;
+    border-radius: 5px;
+    font: 12px monospace;
+}
 </style>
 </head>
 <body>
@@ -32,12 +55,8 @@ h1{font-size:18px;margin:0 0 10px}
 <div class="section"><h1>HVAC</h1><div id="hvac"></div></div>
 <div class="section"><h1>ECO Solar</h1><div id="solar"></div></div>
 
-<div class="status" id="status">Verbonden – events komen live binnen…</div>
-<div id="debug"></div>
-
 <script>
 const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
-
 const map = {
     '410038000547353138383138':'zitplaats',
     '30002c000547343233323032':'bandb',
@@ -52,41 +71,41 @@ const map = {
     '310049000f47343432313031':'solar'
 };
 
-const es = new EventSource('https://api.particle.io/v1/events?access_token=' + token);
-const debugBox = document.getElementById('debug');
-const status = document.getElementById('status');
+// Houd de laatste 20 berichten per controller
+const logs = {};
+Object.keys(map).forEach(id => logs[id] = []);
 
-es.onopen = () => status.textContent = "✅ Verbonden – events komen live binnen!";
-es.onerror = (e) => status.textContent = "⚠️ Fout bij verbinden! Controleer token en browser console.";
-
-es.onmessage = (e) => {
+// Polling functie
+async function pollEvents() {
     try {
-        const payload = JSON.parse(e.data);
-        const coreid = payload.coreid;
-        if(!coreid) return;
+        const resp = await fetch(`https://api.particle.io/v1/events?access_token=${token}&limit=50`);
+        const data = await resp.json();
+        if (!data || !data.events) return;
 
-        const zoneId = map[coreid] || 'solar';
-        const zone = document.getElementById(zoneId);
-        if(!zone) return;
+        data.events.forEach(evt => {
+            const coreid = evt.coreid;
+            const msg = evt.data;
+            const zone = map[coreid];
+            if(!zone) return;
 
-        const eventName = payload.name || payload.event || 'Onbekend';
-        const text = payload.data || '';
-        const t = new Date(payload.published_at || Date.now()).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            // update logs
+            logs[coreid].unshift(msg);
+            if(logs[coreid].length > 20) logs[coreid].pop();
 
-        const div = document.createElement('div');
-        div.className = 'event';
-        div.innerHTML = `<span class="time">${t}</span><span class="name">${eventName}</span>: ${text}`;
-        zone.insertBefore(div, zone.firstChild);
+            // update DOM
+            const div = document.getElementById(zone);
+            div.innerHTML = logs[coreid].map(m => `<div class="event">${m}</div>`).join('');
+        });
 
-        if(zone.children.length > 20) zone.removeChild(zone.lastChild);
-
-        // debug log
-        debugBox.textContent = `[${t}] ${coreid} → ${eventName}: ${text}\n` + debugBox.textContent;
-
-    } catch(err) {
-        console.error('Parsing error', err, e.data);
+    } catch(e) {
+        console.error('Polling fout:', e);
     }
-};
+}
+
+// Start polling elke 2 seconden
+pollEvents();
+setInterval(pollEvents, 2000);
 </script>
+
 </body>
 </html>
