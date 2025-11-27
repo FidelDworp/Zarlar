@@ -4,23 +4,21 @@
     <title>Zarlardinge - Compact Kamer Status</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body{background:url("BG.jpg") center/cover no-repeat;font-family:Arial,sans-serif;margin:10px;color:#333}
-        .title{font-size:24px;font-weight:bold;text-align:center;margin:20px 0}
-        .subtitle{text-align:center;font-size:16px;color:#555;margin-bottom:20px}
-        .buttons{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:15px 0}
-        .btn{padding:10px 16px;background:#007bff;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer;min-width:110px}
-        .status-box{max-width:500px;margin:20px auto;padding:15px;background:rgba(255,255,255,0.95);border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.2)}
-        .item{display:flex;justify-content:space-between;align-items:center;margin:3px 0;font-size:12px}
-        .label{font-weight:bold;color:#1a5276;width:100px}
-        .value{font-family:monospace;font-weight:bold;padding:3px 8px;border-radius:4px;min-width:60px;text-align:center}
-        .loading{text-align:center;color:#666;padding:30px;font-style:italic}
-        .home{display:block;width:120px;margin:30px auto;padding:10px;background:#28a745;color:white;text-align:center;border-radius:6px;text-decoration:none;font-weight:bold}
+        body{background:url("BG.jpg") center/cover no-repeat;font-family:Arial,sans-serif;margin:0;color:#333}
+        .title{font-size:24px;font-weight:bold;text-align:center;padding:20px 0}
+        .buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:0 10px 20px}
+        .btn{padding:12px 20px;background:#007bff;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;min-width:100px}
+        .status-box{max-width:500px;margin:20px auto;padding:15px;background:rgba(255,255,255,0.95);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.2)}
+        .item{display:flex;justify-content:space-between;align-items:center;margin:4px 0;font-size:13px}
+        .label{font-weight:bold;color:#1a5276;width:110px}
+        .value{font-family:monospace;font-weight:bold;padding:4px 10px;border-radius:5px;min-width:70px;text-align:center}
+        .loading{text-align:center;color:#666;padding:40px;font-style:italic}
+        .home{display:block;width:120px;margin:30px auto;padding:12px;background:#28a745;color:white;text-align:center;border-radius:8px;text-decoration:none;font-weight:bold}
     </style>
 </head>
 <body>
 
 <div class="title">Zarlardinge - Compact Kamer Status</div>
-<div class="subtitle">Kies een kamer voor compact overzicht</div>
 
 <div class="buttons">
     <button class="btn" onclick="load('30002c000547343233323032','BandB')">BandB</button>
@@ -32,101 +30,90 @@
     <button class="btn" onclick="load('410038000547353138383138','Zitplaats')">Zitplaats</button>
 </div>
 
-<div id="result" class="status-box"><div class="loading">Kies een kamer...</div></div>
+<div id="result" class="status-box">
+    <div class="loading">Kies een kamer...</div>
+</div>
+
 <a href="index.html" class="home">Home</a>
 
 <script>
 const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
 
-// JUIST DE VOLGORDE DIE JIJ WILT (exact zoals in je tabel)
-const desiredOrder = [
-    "Strength", "Quality", "FreeMem", "Temp1", "Temp2", "Humi", "Dew", "DewAlert",
-    "Light", "Dust", "CO2", "TSTATon", "MOV1", "MOV1light", "MOV2", "MOV2light",
-    "BEAMalert", "BEAMlight", "SUNLight", "Night", "Bed", "R", "G", "B"
-];
+// JUISTE VOLGORDE VAN LABELS (zoals in jouw tabel!)
+const order = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
 
-// Mapping: label → JSON-key
-const keyMap = {
-    "Strength": "g", "Quality": "h", "FreeMem": "v", "Temp1": "w", "Temp2": "x",
-    "Humi": "d", "Dew": "c", "DewAlert": "k", "Light": "e", "Dust": "b",
-    "CO2": "a", "TSTATon": "l", "MOV1": "i", "MOV1light": "m", "MOV2": "j",
-    "MOV2light": "n", "BEAMalert": "o", "BEAMlight": "p", "SUNLight": "f",
-    "Night": "q", "Bed": "r", "R": "s", "G": "t", "B": "u"
+// Welke JSON-key hoort bij welk label?
+const keyFor = {Strength:"g",Quality:"h",FreeMem:"v",Temp1:"w",Temp2:"x",Humi:"d",Dew:"c",DewAlert:"k",Light:"e",Dust:"b",CO2:"a",TSTATon:"l",MOV1:"i",MOV1light:"m",MOV2:"j",MOV2light:"n",BEAMalert:"o",BEAMlight:"p",SUNLight:"f",Night:"q",Bed:"r",R:"s",G:"t",B:"u"};
+
+// Kleurregels (exact zoals in jouw originele pagina)
+const ruleFor = {
+    Strength:{min:0,max:100,minC:"red",maxC:"green"},
+    Quality:{min:0,max:100,minC:"red",maxC:"green"},
+    FreeMem:{min:0,max:84,minC:"red",maxC:"green"},
+    Temp1:{min:15,max:25,minC:"blue",maxC:"red"},
+    Temp2:{min:15,max:25,minC:"blue",maxC:"red"},
+    Humi:{min:0,max:60,minC:"white",maxC:"blue"},
+    Dew:{special:true},
+    DewAlert:{min:0,max:1,minC:"green",maxC:"red"},
+    Light:{min:0,max:20,minC:"gray",maxC:"yellow"},
+    Dust:{min:0,max:100,minC:"white",maxC:"black"},
+    CO2:{min:0,max:800,minC:"green",maxC:"red"},
+    TSTATon:{min:0,max:1,minC:"white",maxC:"red"},
+    MOV1:{min:0,max:100,minC:"white",maxC:"black"},
+    MOV1light:{min:0,max:1,minC:"white",maxC:"yellow"},
+    MOV2:{min:0,max:100,minC:"white",maxC:"black"},
+    MOV2light:{min:0,max:1,minC:"white",maxC:"yellow"},
+    BEAMalert:{min:0,max:1,minC:"white",maxC:"orange"},
+    BEAMlight:{min:0,max:1,minC:"white",maxC:"yellow"},
+    SUNLight:{min:0,max:5000,minC:"white",maxC:"yellow"},
+    Night:{min:0,max:1,minC:"white",maxC:"black"},
+    Bed:{min:0,max:1,minC:"white",maxC:"purple"},
+    R:{min:0,max:255,minC:"white",maxC:"red"},
+    G:{min:0,max:255,minC:"white",maxC:"green"},
+    B:{min:0,max:255,minC:"white",maxC:"blue"}
 };
 
-// Kleurregels exact zoals in jouw tabel
-const rules = {
-    "Strength":  {min:0,   max:100,  minC:"red",    maxC:"green"},
-    "Quality":   {min:0,   max:100,  minC:"red",    maxC:"green"},
-    "FreeMem":   {min:0,   max:84,   minC:"red",    maxC:"green"},
-    "Temp1":     {min:15,  max:25,   minC:"blue",   maxC:"red"},
-    "Temp2":     {min:15,  max:25,   minC:"blue",   maxC:"red"},
-    "Humi":      {min:0,   max:60,   minC:"white",  maxC:"blue"},
-    "Dew":       {special:true},
-    "DewAlert":  {min:0,   max:1,    minC:"green",  maxC:"red"},
-    "Light":     {min:0,   max:20,   minC:"gray",   maxC:"yellow"},
-    "Dust":      {min:0,   max:100,  minC:"white",  maxC:"black"},
-    "CO2":       {min:0,   max:800,  minC:"green",  maxC:"red"},
-    "TSTATon":   {min:0,   max:1,    minC:"white",  maxC:"red"},
-    "MOV1":      {min:0,   max:100,  minC:"white",  maxC:"black"},
-    "MOV1light": {min:0,   max:1,    minC:"white",  maxC:"yellow"},
-    "MOV2":      {min:0,   max:100,  minC:"white",  maxC:"black"},
-    "MOV2light": {min:0,   max:1,    minC:"white",  maxC:"yellow"},
-    "BEAMalert": {min:0,   max:1,    minC:"white",  maxC:"orange"},
-    "BEAMlight": {min:0,   max:1,    minC:"white",  maxC:"yellow"},
-    "SUNLight":  {min:0,   max:5000, minC:"white",  maxC:"yellow"},
-    "Night":     {min:0,   max:1,    minC:"white",  maxC:"black"},
-    "Bed":       {min:0,   max:1,    minC:"white",  maxC:"purple"},
-    "R":         {min:0,   max:255,  minC:"white",  maxC:"red"},
-    "G":         {min:0,   max:255,  minC:"white",  maxC:"green"},
-    "B":         {min:0,   max:255,  minC:"white",  maxC:"blue"}
-};
-
-function interpolate(value, rule) {
-    if (!rule || value === "Onbekend") return "#ffffff";
-    if (rule.special) return "#ffffff"; // Dew wordt apart behandeld
-    let ratio = Math.min(Math.max((parseFloat(value)-rule.min)/(rule.max-rule.min),0),1);
+function getColor(value, label, temp1) {
+    if (value === "Onbekend") return "#ffffff";
+    const r = ruleFor[label];
+    if (label === "Dew") {
+        return (temp1 !== "Onbekend" && parseFloat(temp1) < parseFloat(value)) ? "#ff4444" : "#44aa44";
+    }
+    const ratio = Math.max(0, Math.min(1, (parseFloat(value) - r.min) / (r.max - r.min)));
     const map = {red:[255,0,0],green:[0,255,0],blue:[0,0,255],white:[255,255,255],black:[0,0,0],yellow:[255,255,0],gray:[128,128,128],orange:[255,165,0],purple:[128,0,128]};
-    let c1 = map[rule.minC], c2 = map[rule.maxC];
-    let r = Math.round(c1[0]+(c2[0]-c1[0])*ratio);
-    let g = Math.round(c1[1]+(c2[1]-c1[1])*ratio);
-    let b = Math.round(c1[2]+(c2[2]-c1[2])*ratio);
-    return `rgb(${r},${g},${b})`;
+    const c1 = map[r.minC], c2 = map[r.maxC];
+    const rgb = `rgb(${Math.round(c1[0]+(c2[0]-c1[0])*ratio)},${Math.round(c1[1]+(c2[1]-c1[1])*ratio)},${Math.round(c1[2]+(c2[2]-c1[2])*ratio)})`;
+    const lum = 0.299*parseInt(rgb.match(/\d+/g)[0]) + 0.587*parseInt(rgb.match(/\d+/g)[1]) + 0.114*parseInt(rgb.match(/\d+/g)[2]);
+    return {bg: rgb, text: lum < 128 ? "#fff" : "#000"};
 }
 
-async function load(deviceId, name) {
-    const div = document.getElementById("result");
-    div.innerHTML = `<div class="loading">Laden ${name}...</div>`;
+async function load(id, name) {
+    const box = document.getElementById("result");
+    box.innerHTML = `<div class="loading">Laden ${name}...</div>`;
     try {
-        const r = await fetch(`https://api.particle.io/v1/devices/${deviceId}/JSON_status?access_token=${token}`);
-        const d = await r.json();
-        const status = JSON.parse(unescape(d.result));
+        const res = await fetch(`https://api.particle.io/v1/devices/${id}/JSON_status?access_token=${token}`);
+        const data = await res.json();
+        const status = JSON.parse(unescape(data.result));
+        const temp1 = status.w;
 
-        let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:12px">${name} - Compact Status</h2>`;
-
-        desiredOrder.forEach(label => {
-            const key = keyMap[label];
+        let html = `<h2 style="text-align:center;color:#1a5276;margin:0 0 15px 0">${name} - Compact Status</h2>`;
+        
+        order.forEach(label => {
+            const key = keyFor[label];
             if (status.hasOwnProperty(key)) {
-                let value = status[key];
-                let color = interpolate(value, rules[label]);
-
-                // Dew speciaal: rood als Temp1 < Dew
-                if (label === "Dew") {
-                    const temp1 = parseFloat(status.w);
-                    const dew   = parseFloat(value);
-                    color = (temp1 < dew && temp1 !== "Onbekend") ? "#ff4444" : "#44aa44";
-                }
-
-                // Tekstkleur
-                const lum = color === "#ffffff" ? 255 : (0.299*parseInt(color.substr(1,2),16) + 0.587*parseInt(color.substr(3,2),16) + 0.114*parseInt(color.substr(5,2),16));
-                const txt = lum < 128 ? "#fff" : "#000";
-
-                html += `<div class="item"><span class="label">${label}:</span><span class="value" style="background:${color};color:${txt}">${value}</span></div>`;
+                const value = status[key];
+                const colors = getColor(value, label, temp1);
+                html += `<div class="item">
+                    <span class="label">${label}:</span>
+                    <span class="value" style="background:${colors.bg};color:${colors.text}">${value}</span>
+                </div>`;
             }
         });
-
-        div.innerHTML = html;
-    } catch { div.innerHTML = `<p style="color:red;text-align:center">Fout bij ophalen data</p>`; }
+        
+        box.innerHTML = html;
+    } catch {
+        box.innerHTML = `<p style="color:red;text-align:center">Fout bij ophalen data</p>`;
+    }
 }
 </script>
 </body>
