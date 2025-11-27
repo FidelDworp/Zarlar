@@ -63,7 +63,7 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s;
-            border-left: 4px solid #007bff;
+            /* Geen blauwe rand meer – verwijderd! */
         }
         .label {
             font-weight: bold;
@@ -128,8 +128,7 @@
 <script>
 const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
 
-// EXACTE MAPPING uit Rooms_Overview.html (volgorde + namen)
-const order = ['g','h','v','w','x','d','c','k','e','b','a','l','i','m','j','n','o','p','f','q','r','s','t','u'];
+// Labels exact zoals in Rooms_Overview.html headers (geen (Red) etc.)
 const labels = {
     g: "Strength",     h: "Quality",      v: "FreeMem",      w: "Temp1",
     x: "Temp2",        d: "Humi",         c: "Dew",          k: "DewAlert",
@@ -139,7 +138,10 @@ const labels = {
     r: "Bed",          s: "R",            t: "G",            u: "B"
 };
 
-// EXACTE KLEURREGELS uit Rooms_Overview.html
+// Volgorde exact zoals in Rooms_Overview.html tabel-kolommen (vanaf Strength)
+const order = ['g', 'h', 'v', 'w', 'x', 'd', 'c', 'k', 'e', 'b', 'a', 'l', 'i', 'm', 'j', 'n', 'o', 'p', 'f', 'q', 'r', 's', 't', 'u'];
+
+// Exacte kleurregels uit Rooms_Overview.html
 const columnRules = {
     'Strength': { min: 0, max: 100, minColor: 'red', maxColor: 'green' },
     'Quality': { min: 0, max: 100, minColor: 'red', maxColor: 'green' },
@@ -147,7 +149,7 @@ const columnRules = {
     'Temp1': { min: 15, max: 25, minColor: 'blue', maxColor: 'red' },
     'Temp2': { min: 15, max: 25, minColor: 'blue', maxColor: 'red' },
     'Humi': { min: 0, max: 60, minColor: 'white', maxColor: 'blue' },
-    'Dew': { special: true }, // Vergelijk met Temp1
+    'Dew': { special: true },
     'DewAlert': { min: 0, max: 1, minColor: 'green', maxColor: 'red' },
     'Light': { min: 0, max: 20, minColor: 'gray', maxColor: 'yellow' },
     'Dust': { min: 0, max: 100, minColor: 'white', maxColor: 'black' },
@@ -167,7 +169,7 @@ const columnRules = {
     'B': { min: 0, max: 255, minColor: 'white', maxColor: 'blue' }
 };
 
-// Exacte interpolateColor functie uit jouw script
+// Exacte interpolateColor uit jouw script
 function interpolateColor(value, min, max, minColor, maxColor) {
     if (value === 'Onbekend' || isNaN(parseFloat(value))) return '#ffffff';
     const ratio = Math.min(Math.max((parseFloat(value) - min) / (max - min), 0), 1);
@@ -198,8 +200,6 @@ async function loadStatus(deviceId, locationName) {
 
         let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:25px">${locationName} - Live Status</h2>`;
 
-        // EXACTE VOLGORDE uit Rooms_Overview.html tabel
-        const order = ['g','h','v','w','x','d','c','k','e','b','a','l','i','m','j','n','o','p','f','q','r','s','t','u'];
         const temp1Value = status.w !== undefined ? status.w : 'Onbekend'; // Voor Dew-vergelijking
 
         order.forEach(key => {
