@@ -4,100 +4,233 @@
     <title>Zarlardinge - Compact Kamer Status</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body{background:url("BG.jpg") center/cover no-repeat;font-family:Arial,sans-serif;margin:0;color:#333}
-        .title{font-size:24px;font-weight:bold;text-align:center;padding:20px 0}
-        .buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px}
-        .btn{padding:12px 18px;background:#007bff;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer}
-        .status-box{max-width:500px;margin:20px auto;padding:20px;background:rgba(255,255,255,0.96);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.2)}
-        .item{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:14px}
-        .label{font-weight:bold;color:#1a5276;width:115px}
-        .value{font-family:monospace;font-weight:bold;padding:6px 14px;border-radius:7px;min-width:75px;text-align:center}
-        .loading{text-align:center;color:#666;padding:50px;font-size:18px}
-        .home{display:block;width:140px;margin:30px auto;padding:14px;background:#28a745;color:white;text-align:center;border-radius:8px;text-decoration:none;font-weight:bold}
+        body {
+            background: url("BG.jpg") center/cover no-repeat;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 10px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .btn {
+            padding: 10px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 110px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .status-box {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2px 0;
+            padding: 2px 4px;
+            font-size: 12px;
+            border-radius: 2px;
+        }
+        .label {
+            font-weight: bold;
+            color: #1a5276;
+            min-width: 100px;
+            flex: 1;
+        }
+        .value {
+            font-family: monospace;
+            font-weight: bold;
+            padding: 1px 4px;
+            border-radius: 2px;
+            min-width: 40px;
+            text-align: center;
+            flex: 1;
+        }
+        .loading {
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+            padding: 30px;
+        }
+        .home {
+            display: block;
+            width: 120px;
+            margin: 30px auto;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .home:hover {
+            background: #218838;
+        }
     </style>
 </head>
 <body>
 
 <div class="title">Zarlardinge - Compact Kamer Status</div>
+<div class="subtitle">Kies een kamer voor compact overzicht</div>
 
 <div class="buttons">
-    <button class="btn" onclick="load('30002c000547343233323032','BandB')">BandB</button>
-    <button class="btn" onclick="load('5600420005504b464d323520','Badkamer')">Badkamer</button>
-    <button class="btn" onclick="load('420035000e47343432313031','Inkom')">Inkom</button>
-    <button class="btn" onclick="load('310017001647373335333438','Keuken')">Keuken</button>
-    <button class="btn" onclick="load('33004f000e504b464d323520','Wasplaats')">Wasplaats</button>
-    <button class="btn" onclick="load('210042000b47343432313031','Eetplaats')">Eetplaats</button>
-    <button class="btn" onclick="load('410038000547353138383138','Zitplaats')">Zitplaats</button>
+    <button class="btn" onclick="loadStatus('30002c000547343233323032', 'BandB')">BandB</button>
+    <button class="btn" onclick="loadStatus('5600420005504b464d323520', 'Badkamer')">Badkamer</button>
+    <button class="btn" onclick="loadStatus('420035000e47343432313031', 'Inkom')">Inkom</button>
+    <button class="btn" onclick="loadStatus('310017001647373335333438', 'Keuken')">Keuken</button>
+    <button class="btn" onclick="loadStatus('33004f000e504b464d323520', 'Wasplaats')">Wasplaats</button>
+    <button class="btn" onclick="loadStatus('210042000b47343432313031', 'Eetplaats')">Eetplaats</button>
+    <button class="btn" onclick="loadStatus('410038000547353138383138', 'Zitplaats')">Zitplaats</button>
 </div>
 
-<div id="result" class="status-box"><div class="loading">Kies een kamer...</div></div>
+<div id="result" class="status-box">
+    <p class="loading">Kies een kamer voor compact overzicht...</p>
+</div>
 
 <a href="index.html" class="home">Home</a>
 
 <script>
 const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
 
-// EXACT DE VOLGORDE VAN JOUW TABEL (zoals in Rooms_Overview.html)
-const labels = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
+// Exacte volgorde van labels uit je tabel (Strength eerst, dan Quality, etc.)
+const labels = [
+    "Strength", "Quality", "FreeMem", "Temp1", "Temp2", "Humi", "Dew", "DewAlert",
+    "Light", "Dust", "CO2", "TSTATon", "MOV1", "MOV1light", "MOV2", "MOV2light",
+    "BEAMalert", "BEAMlight", "SUNLight", "Night", "Bed", "R", "G", "B"
+];
 
-// EXACTE JSON-keys die daarbij horen (nooit meer verwisseld)
-const keys =    ["g",      "h",      "v",      "w",    "x",    "d",   "c",   "k",        "e",     "b",    "a",   "l",       "i",   "m",        "j",   "n",        "o",        "p",        "f",       "q",     "r",  "s","t","u"];
+// Exacte JSON-keys voor elke label (uit je script en screenshots)
+const keys = [
+    "g", "h", "v", "w", "x", "d", "c", "k", "e", "b", "a", "l", "i", "m", "j", "n", "o", "p", "f", "q", "r", "s", "t", "u"
+];
 
-async function load(id, name) {
-    const box = document.getElementById("result");
-    box.innerHTML = `<div class="loading">Laden ${name}...</div>`;
+// Exacte columnRules uit je script (op volgorde van labels)
+const columnRules = [
+    { min: 0, max: 100, minColor: 'red', maxColor: 'green' }, // Strength
+    { min: 0, max: 100, minColor: 'red', maxColor: 'green' }, // Quality
+    { min: 0, max: 84, minColor: 'red', maxColor: 'green' }, // FreeMem
+    { min: 15, max: 25, minColor: 'blue', maxColor: 'red' }, // Temp1
+    { min: 15, max: 25, minColor: 'blue', maxColor: 'red' }, // Temp2
+    { min: 0, max: 60, minColor: 'white', maxColor: 'blue' }, // Humi
+    { special: true }, // Dew
+    { min: 0, max: 1, minColor: 'green', maxColor: 'red' }, // DewAlert
+    { min: 0, max: 20, minColor: 'gray', maxColor: 'yellow' }, // Light
+    { min: 0, max: 100, minColor: 'white', maxColor: 'black' }, // Dust
+    { min: 0, max: 800, minColor: 'green', maxColor: 'red' }, // CO2
+    { min: 0, max: 1, minColor: 'white', maxColor: 'red' }, // TSTATon
+    { min: 0, max: 100, minColor: 'white', maxColor: 'black' }, // MOV1
+    { min: 0, max: 1, minColor: 'white', maxColor: 'yellow' }, // MOV1light
+    { min: 0, max: 100, minColor: 'white', maxColor: 'black' }, // MOV2
+    { min: 0, max: 1, minColor: 'white', maxColor: 'yellow' }, // MOV2light
+    { min: 0, max: 1, minColor: 'white', maxColor: 'orange' }, // BEAMalert
+    { min: 0, max: 1, minColor: 'white', maxColor: 'yellow' }, // BEAMlight
+    { min: 0, max: 5000, minColor: 'white', maxColor: 'yellow' }, // SUNLight
+    { min: 0, max: 1, minColor: 'white', maxColor: 'black' }, // Night
+    { min: 0, max: 1, minColor: 'white', maxColor: 'purple' }, // Bed
+    { min: 0, max: 255, minColor: 'white', maxColor: 'red' }, // R
+    { min: 0, max: 255, minColor: 'white', maxColor: 'green' }, // G
+    { min: 0, max: 255, minColor: 'white', maxColor: 'blue' } // B
+];
+
+// Exacte interpolateColor uit je Rooms_Overview.html
+function interpolateColor(value, min, max, minColor, maxColor) {
+    if (value === 'Onbekend' || isNaN(parseFloat(value))) return '#ffffff';
+    const ratio = Math.min(Math.max((parseFloat(value) - min) / (max - min), 0), 1);
+    const colorMap = {
+        'red': [255, 0, 0], 'green': [0, 255, 0], 'blue': [0, 0, 255],
+        'white': [255, 255, 255], 'black': [0, 0, 0], 'yellow': [255, 255, 0],
+        'gray': [128, 128, 128], 'orange': [255, 165, 0], 'purple': [128, 0, 128]
+    };
+    const c1 = colorMap[minColor] || [255, 255, 255];
+    const c2 = colorMap[maxColor] || [255, 255, 255];
+    const r = Math.round(c1[0] + (c2[0] - c1[0]) * ratio);
+    const g = Math.round(c1[1] + (c2[1] - c1[1]) * ratio);
+    const b = Math.round(c1[2] + (c2[2] - c1[2]) * ratio);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+async function loadStatus(deviceId, locationName) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = `<p class="loading">Laden status voor <strong>${locationName}</strong>...</p>`;
+
     try {
-        const res = await fetch(`https://api.particle.io/v1/devices/${id}/JSON_status?access_token=${token}`);
-        const data = await res.json();
-        const status = JSON.parse(unescape(data.result));
+        const response = await fetch(`https://api.particle.io/v1/devices/${deviceId}/JSON_status?access_token=${token}`);
+        const data = await response.json();
+        if (!data.result) throw new Error("Geen data ontvangen");
 
-        let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:20px">${name} - Compact Status</h2>`;
+        const jsonString = unescape(data.result);
+        const status = JSON.parse(jsonString);
+
+        let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:15px">${locationName} - Compact Status</h2>`;
+
+        const temp1Value = status.w !== undefined ? status.w : 'Onbekend';
 
         for (let i = 0; i < labels.length; i++) {
-            const label = labels[i];
-            const key   = keys[i];
-            const value = status[key] ?? "Onbekend";
+            const niceName = labels[i];
+            const key = keys[i];
+            const value = status[key] !== undefined ? status[key] : 'Onbekend';
+            const rule = columnRules[i];
 
-            // Kleur berekenen (exact jouw logica)
-            let bg = "#ffffff";
-            if (label === "Strength" || label === "Quality") {
-                const r = (value / 100); bg = `rgb(${255*(1-r)},${255*r},0)`;
+            let bgColor = '#ffffff';
+            if (niceName === 'Dew') {
+                if (temp1Value === 'Onbekend' || value === 'Onbekend') {
+                    bgColor = '#ffffff';
+                } else {
+                    bgColor = parseFloat(temp1Value) < parseFloat(value) ? '#ff4444' : '#44aa44';
+                }
+            } else if (rule && !rule.special) {
+                bgColor = interpolateColor(value, rule.min, rule.max, rule.minColor, rule.maxColor);
             }
-            else if (label === "FreeMem") {
-                const r = (value / 84); bg = `rgb(${255*(1-r)},${255*r},0)`;
-            }
-            else if (label === "Temp1" || label === "Temp2") {
-                const r = Math.max(0, Math.min(1, (value-15)/10)); bg = `rgb(${255*r},${0},${255*(1-r)})`;
-            }
-            else if (label === "Humi") {
-                const r = (value / 60); bg = `rgb(255,255,${255*(1-r)})`;
-            }
-            else if (label === "Dew") {
-                const temp1 = parseFloat(status.w ?? 0);
-                const dew   = parseFloat(value);
-                bg = (temp1 < dew) ? "#ff4444" : "#44aa44";
-            }
-            else if (label === "DewAlert") {
-                bg = value == 1 ? "#ff4444" : "#44aa44";
-            }
-            else if (label === "Light") {
-                const r = (value / 20); bg = `rgb(${128+127*r},${128+127*r},0)`;
-            }
-            // de rest blijft zoals jouw originele regels (Dust, CO2, MOV, enz.) – ik laat ze hier kort voor overzicht
 
-            const lum = parseInt(bg.substr(1,2),16)*0.299 + parseInt(bg.substr(3,2),16)*0.587 + parseInt(bg.substr(5,2),16)*0.114;
-            const textColor = lum < 128 ? "#fff" : "#000";
+            // Exacte luminance uit jouw script voor tekstkleur
+            const luminance = bgColor.match(/\d+/g) ? (0.299 * parseInt(bgColor.match(/\d+/g)[0]) + 0.587 * parseInt(bgColor.match(/\d+/g)[1]) + 0.114 * parseInt(bgColor.match(/\d+/g)[2])) : 255;
+            const textColor = luminance < 128 ? '#ffffff' : '#333';
 
             html += `<div class="item">
-                <span class="label">${label}:</span>
-                <span class="value" style="background:${bg};color:${textColor}">${value}</span>
+                <span class="label">${niceName}:</span>
+                <span class="value" style="background-color: ${bgColor}; color: ${textColor};">${value}</span>
             </div>`;
         }
-        box.innerHTML = html;
-    } catch(e) {
-        box.innerHTML = `<p style="color:red;text-align:center">Fout</p>`;
+
+        resultDiv.innerHTML = html;
+
+    } catch (err) {
+        resultDiv.innerHTML = `<p style="color:red;text-align:center">Fout bij ${locationName}<br><small>${err.message}</small></p>`;
+        console.error(err);
     }
 }
 </script>
+
 </body>
 </html>
