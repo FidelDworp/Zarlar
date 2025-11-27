@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body{background:url("BG.jpg") center/cover no-repeat;font-family:Arial,sans-serif;margin:0;color:#333}
-        .title{font-size:24px;font-weight:bold;text-align:center;padding:20px 0;color:#333}
-        .buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:0 10px 20px}
-        .btn{padding:12px 20px;background:#007bff;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;min-width:100px}
+        .title{font-size:24px;font-weight:bold;text-align:center;padding:20px 0}
+        .buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px}
+        .btn{padding:12px 18px;background:#007bff;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer}
         .status-box{max-width:500px;margin:20px auto;padding:18px;background:rgba(255,255,255,0.96);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.2)}
         .item{display:flex;justify-content:space-between;align-items:center;margin:5px 0;font-size:13.5px}
         .label{font-weight:bold;color:#1a5276;width:115px}
         .value{font-family:monospace;font-weight:bold;padding:5px 12px;border-radius:6px;min-width:70px;text-align:center}
-        .loading{text-align:center;color:#666;padding:40px;font-style:italic}
+        .loading{text-align:center;color:#666;padding:40px}
         .home{display:block;width:130px;margin:30px auto;padding:12px;background:#28a745;color:white;text-align:center;border-radius:8px;text-decoration:none;font-weight:bold}
     </style>
 </head>
@@ -30,19 +30,16 @@
     <button class="btn" onclick="load('410038000547353138383138','Zitplaats')">Zitplaats</button>
 </div>
 
-<div id="result" class="status-box">
-    <div class="loading">Kies een kamer...</div>
-</div>
-
+<div id="result" class="status-box"><div class="loading">Kies een kamer...</div></div>
 <a href="index.html" class="home">Home</a>
 
 <script>
 const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
 
-// VOLGORDE EXACT ZOALS IN JOUW TABEL
+// EXACTE VOLGORDE VAN JOUW TABEL
 const order = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
 
-// JUISTE MAPPING label → JSON-key
+// CORRECTE MAPPING (nu echt!)
 const keyMap = {
     "Strength":"g","Quality":"h","FreeMem":"v","Temp1":"w","Temp2":"x",
     "Humi":"d","Dew":"c","DewAlert":"k","Light":"e","Dust":"b","CO2":"a",
@@ -51,7 +48,6 @@ const keyMap = {
     "R":"s","G":"t","B":"u"
 };
 
-// Kleurregels exact zoals origineel
 const rules = {
     "Strength":{min:0,max:100,minC:"red",maxC:"green"},
     "Quality":{min:0,max:100,minC:"red",maxC:"green"},
@@ -80,17 +76,18 @@ const rules = {
 };
 
 function getColor(value, label, temp1) {
-    if (value === "Onbekend" || value == null) return "#ffffff";
+    if (value == null || value === "Onbekend") return "#ffffff";
     const r = rules[label];
     if (label === "Dew") {
         const t = parseFloat(temp1);
         const d = parseFloat(value);
-        return (t < d) ? "#ff4444" : "#44aa44";
+        if (isNaN(t) || isNaN(d)) return "#ffffff";
+        return t < d ? "#ff4444" : "#44aa44";
     }
     const ratio = Math.max(0, Math.min(1, (parseFloat(value) - r.min) / (r.max - r.min)));
     const map = {red:[255,0,0],green:[0,255,0],blue:[0,0,255],white:[255,255,255],black:[0,0,0],yellow:[255,255,0],gray:[128,128,128],orange:[255,165,0],purple:[128,0,128]};
     const c1 = map[r.minC], c2 = map[r.maxC];
-    const rgb = `rgb(${Math.round(c1[0]+(c2[0]-c1[0])*ratio)}, ${Math.round(c1[1]+(c2[1]-c1[1])*ratio)}, ${Math.round(c1[2]+(c2[2]-c1[2])*ratio)})`;
+    const rgb = `rgb(${Math.round(c1[0]+(c2[0]-c1[0])*ratio)},${Math.round(c1[1]+(c2[1]-c1[1])*ratio)},${Math.round(c1[2]+(c2[2]-c1[2])*ratio)})`;
     const lum = 0.299*parseInt(rgb.match(/\d+/g)[0]) + 0.587*parseInt(rgb.match(/\d+/g)[1]) + 0.114*parseInt(rgb.match(/\d+/g)[2]);
     return {bg: rgb, text: lum < 128 ? "#fff" : "#000"};
 }
@@ -102,13 +99,13 @@ async function load(id, name) {
         const res = await fetch(`https://api.particle.io/v1/devices/${id}/JSON_status?access_token=${token}`);
         const data = await res.json();
         const status = JSON.parse(unescape(data.result));
-        const temp1 = status.w || "Onbekend";
+        const temp1 = status.w;   // <-- nu correct gebruikt voor Dew
 
         let html = `<h2 style="text-align:center;color:#1a5276;margin:0 0 18px 0;font-size:18px">${name} - Compact Status</h2>`;
         
         order.forEach(label => {
             const key = keyMap[label];
-            const value = status.hasOwnProperty(key) ? status[key] : "Onbekend";
+            const value = status[key] !== undefined ? status[key] : "Onbekend";
             const c = getColor(value, label, temp1);
             html += `<div class="item">
                 <span class="label">${label}:</span>
@@ -118,7 +115,7 @@ async function load(id, name) {
         
         box.innerHTML = html;
     } catch(e) {
-        box.innerHTML = `<p style="color:red;text-align:center">Fout: ${e.message}</p>`;
+        box.innerHTML = `<p style="color:red;text-align:center">Fout</p>`;
     }
 }
 </script>
