@@ -56,23 +56,23 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 6px 0;
-            padding: 4px 8px;
-            font-size: 14px;
-            border-radius: 4px;
+            margin: 4px 0;
+            padding: 4px 6px;
+            font-size: 13px;
+            border-radius: 3px;
         }
         .label {
             font-weight: bold;
             color: #1a5276;
-            min-width: 140px;
+            min-width: 120px;
             flex: 1;
         }
         .value {
             font-family: monospace;
             font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-            min-width: 60px;
+            padding: 3px 6px;
+            border-radius: 3px;
+            min-width: 50px;
             text-align: center;
             flex: 1;
         }
@@ -123,24 +123,21 @@
 <script>
 const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
 
-// Exacte volgorde en labels uit Rooms_Overview.html tabel-headers
-const order = ['g','h','v','w','x','d','c','k','e','b','a','l','i','m','j','n','o','p','f','q','r','s','t','u'];
-const labels = {
-    g: "Strength",     h: "Quality",      v: "FreeMem",      w: "Temp1",
-    x: "Temp2",        d: "Humi",         c: "Dew",          k: "DewAlert",
-    e: "Light",        b: "Dust",         a: "CO2",          l: "TSTATon",
-    i: "MOV1",         m: "MOV1light",    j: "MOV2",         n: "MOV2light",
-    o: "BEAMalert",    p: "BEAMlight",    f: "SUNLight",     q: "Night",
-    r: "Bed",          s: "R",            t: "G",            u: "B"
-};
+// Exacte variabelen-volgorde uit Rooms_Overview.html (v, w, x, g, h, d, c, k, e, b, a, l, i, m, j, n, o, p, f, q, r, s, t, u)
+const variables = ['v', 'w', 'x', 'g', 'h', 'd', 'c', 'k', 'e', 'b', 'a', 'l', 'i', 'm', 'j', 'n', 'o', 'p', 'f', 'q', 'r', 's', 't', 'u'];
 
-// Exacte kleurregels uit Rooms_Overview.html
+// Exacte labels uit Rooms_Overview.html tabel-headers (op index)
+const labels = [
+    "FreeMem", "Temp1", "Temp2", "Strength", "Quality", "Humi", "Dew", "DewAlert", "Light", "Dust", "CO2", "TSTATon", "MOV1", "MOV1light", "MOV2", "MOV2light", "BEAMalert", "BEAMlight", "SUNLight", "Night", "Bed", "R", "G", "B"
+];
+
+// Exacte columnRules uit Rooms_Overview.html
 const columnRules = {
-    'Strength': { min: 0, max: 100, minColor: 'red', maxColor: 'green' },
-    'Quality': { min: 0, max: 100, minColor: 'red', maxColor: 'green' },
     'FreeMem': { min: 0, max: 84, minColor: 'red', maxColor: 'green' },
     'Temp1': { min: 15, max: 25, minColor: 'blue', maxColor: 'red' },
     'Temp2': { min: 15, max: 25, minColor: 'blue', maxColor: 'red' },
+    'Strength': { min: 0, max: 100, minColor: 'red', maxColor: 'green' },
+    'Quality': { min: 0, max: 100, minColor: 'red', maxColor: 'green' },
     'Humi': { min: 0, max: 60, minColor: 'white', maxColor: 'blue' },
     'Dew': { special: true },
     'DewAlert': { min: 0, max: 1, minColor: 'green', maxColor: 'red' },
@@ -162,7 +159,7 @@ const columnRules = {
     'B': { min: 0, max: 255, minColor: 'white', maxColor: 'blue' }
 };
 
-// Exacte interpolateColor-functie uit Rooms_Overview.html
+// Exacte interpolateColor uit Rooms_Overview.html
 function interpolateColor(value, min, max, minColor, maxColor) {
     if (value === 'Onbekend' || isNaN(parseFloat(value))) return '#ffffff';
     const ratio = Math.min(Math.max((parseFloat(value) - min) / (max - min), 0), 1);
@@ -191,13 +188,13 @@ async function loadStatus(deviceId, locationName) {
         const jsonString = unescape(data.result);
         const status = JSON.parse(jsonString);
 
-        let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:15px">${locationName} - Compact Status</h2>`;
+        let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:10px">${locationName} - Compact Status</h2>`;
 
         const temp1Value = status.w !== undefined ? status.w : 'Onbekend';
 
-        order.forEach(key => {
+        variables.forEach((key, index) => {
             if (status.hasOwnProperty(key)) {
-                const niceName = labels[key];
+                const niceName = labels[index]; // Label op index, zoals in je tabel
                 const value = status[key];
                 const columnName = niceName;
                 const rule = columnRules[columnName];
@@ -213,7 +210,7 @@ async function loadStatus(deviceId, locationName) {
                     bgColor = interpolateColor(value, rule.min, rule.max, rule.minColor, rule.maxColor);
                 }
 
-                // Exacte luminance voor tekstkleur uit jouw script
+                // Exacte luminance uit jouw script
                 const luminance = bgColor.match(/\d+/g) ? (0.299 * parseInt(bgColor.match(/\d+/g)[0]) + 0.587 * parseInt(bgColor.match(/\d+/g)[1]) + 0.114 * parseInt(bgColor.match(/\d+/g)[2])) : 255;
                 const textColor = luminance < 128 ? '#ffffff' : '#333';
 
