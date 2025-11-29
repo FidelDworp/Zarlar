@@ -1,94 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Zarlardinge Schuur - Controllers Diagnose</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
-            background-image: url("BG.jpg");
-            background-size: cover;
-            background-repeat: no-repeat;
             font-family: Arial, sans-serif;
-            color: #333;
+            background-color: #f5f5f5;
             margin: 20px;
         }
-        h1 {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
+        h1 { font-size: 20px; margin-bottom: 10px; }
         .explanation {
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 8px;
+            background-color: #fff;
             padding: 10px;
-            max-width: 600px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        .legend {
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        .legend span {
-            display: inline-flex;
-            align-items: center;
-            margin-right: 15px;
-        }
-        .legend .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-        .controller-container {
-            background-color: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .legend span { margin-right: 15px; display: inline-flex; align-items: center; }
+        .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .controller-container {
+            background-color: #fff;
             padding: 15px;
-            max-width: 600px;
+            border-radius: 8px;
             margin-bottom: 20px;
         }
         .controller-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 5px 0;
+            margin-bottom: 5px;
             padding: 5px 0;
             border-bottom: 1px solid rgba(0,0,0,0.1);
-            flex-wrap: wrap;
         }
-        .controller-name {
-            font-weight: bold;
-            flex: 1 1 150px;
-        }
+        .controller-name { flex: 1; font-weight: bold; }
         .console-button {
-            padding: 5px 10px;
             background-color: #007bff;
             color: white;
-            border: none;
+            padding: 5px 10px;
             border-radius: 4px;
-            cursor: pointer;
             text-decoration: none;
-            margin-right: 10px;
-            flex: 0 0 auto;
-        }
-        .console-button:hover {
-            background-color: #0056b3;
-        }
-        .diagnosis {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex: 1 1 auto;
-            flex-wrap: wrap;
         }
         .status-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .diagnosis span {
-            font-size: 12px;
+            width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-right: 5px;
         }
     </style>
 </head>
@@ -96,116 +50,84 @@
 <h1>Zarlardinge Schuur - Controllers Diagnose</h1>
 
 <div class="explanation">
-    Deze pagina toont alle Photons van het huis met directe toegang tot de Particle Console en diagnose-informatie, inclusief wifi-signaalsterkte.
+    Deze pagina toont alle Photons van het huis met directe toegang tot de Particle Console en diagnose-informatie, inclusief wifi-signaalsterkte.<br>
     <div class="legend">
-        <span><span class="dot" style="background-color:green;"></span>Online</span>
-        <span><span class="dot" style="background-color:orange;"></span>Offline &lt; 15 min</span>
-        <span><span class="dot" style="background-color:red;"></span>Offline ≥ 15 min</span>
-        <span>📶 Wifi signaal (RSSI)</span>
+        <span><span class="dot" style="background-color:green"></span>Online</span>
+        <span><span class="dot" style="background-color:orange"></span>Offline &lt; 15 min</span>
+        <span><span class="dot" style="background-color:red"></span>Offline ≥ 15 min</span>
+        <span>📶 Wifi (RSSI)</span>
         <span>🕑 Laatst gezien</span>
         <span>ℹ️ Firmware versie</span>
     </div>
-    <div style="margin-top:5px; font-size:12px;">
-        Deze pagina gebruikt een Cloudflare Worker service 
-        (<a href="https://controllers-diagnose.filip-delannoy.workers.dev/" target="_blank">controllers-diagnose.filip-delannoy.workers.dev</a>) 
-        om de diagnose-informatie van de Photon controllers op te halen. Je Particle login is veilig en wordt niet blootgesteld.
-    </div>
+    <small>Deze pagina gebruikt een Cloudflare Worker service (<a href="https://controllers-diagnose.filip-delannoy.workers.dev/" target="_blank">link</a>) om de diagnose-informatie van de Photon controllers op te halen. Je Particle login is veilig en wordt niet blootgesteld.</small>
 </div>
 
-<div id="controllers" class="controller-container">
-    <!-- Controllers komen hier via JS -->
-</div>
+<div id="controllers" class="controller-container"></div>
 
 <script>
-const WORKER_URL = 'https://controllers-diagnose.filip-delannoy.workers.dev/';
-const DEVICE_MAP = {
-    "30002c000547343233323032": "R1-BandB",
-    "5600420005504b464d323520": "R2-Badkamer",
-    "420035000e47343432313031": "R3-Inkom",
-    "310017001647373335333438": "R4-Keuken",
-    "33004f000e504b464d323520": "R5-Wasplaats",
-    "210042000b47343432313031": "R6-Eetplaats",
-    "410038000547353138383138": "R7-Zitplaats",
-    "2d0032001247333438353733": "R8-Access",
-    "390028001147343339383037": "S-Outside",
-    "310049000f47343432313031": "S-ECO-boiler",
-    "290044000147353138383138": "S-HVAC"
-};
+const WORKER_URL = "https://controllers-diagnose.filip-delannoy.workers.dev/";
 
-function createControllerRow(device) {
-    const row = document.createElement('div');
-    row.className = 'controller-row';
+async function loadControllers() {
+    const container = document.getElementById('controllers');
+    container.innerHTML = 'Laden...';
+    try {
+        const res = await fetch(WORKER_URL);
+        const data = await res.json();
+        container.innerHTML = '';
+        data.forEach(device => {
+            const row = document.createElement('div');
+            row.className = 'controller-row';
 
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'controller-name';
-    nameDiv.textContent = device.name;
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'controller-name';
+            nameDiv.textContent = device.name;
 
-    const consoleButton = document.createElement('a');
-    consoleButton.href = `https://console.particle.io/devices/${device.id}`;
-    consoleButton.target = '_blank';
-    consoleButton.className = 'console-button';
-    consoleButton.textContent = 'Console';
+            const consoleButton = document.createElement('a');
+            consoleButton.className = 'console-button';
+            consoleButton.href = `https://console.particle.io/devices/${device.id}`;
+            consoleButton.target = '_blank';
+            consoleButton.textContent = 'Console';
 
-    const diagnosisDiv = document.createElement('div');
-    diagnosisDiv.className = 'diagnosis';
+            const diagnosis = document.createElement('div');
+            diagnosis.style.display = 'flex';
+            diagnosis.style.gap = '10px';
+            diagnosis.style.alignItems = 'center';
 
-    // Status bolletje
-    const statusDot = document.createElement('span');
-    statusDot.className = 'status-dot';
-    if(device.status === 'online') statusDot.style.backgroundColor = 'green';
-    else if(device.status === 'offline' && device.last_seen_diff < 15) statusDot.style.backgroundColor = 'orange';
-    else statusDot.style.backgroundColor = 'red';
-    statusDot.title = `Status: ${device.status}\nLaatst gezien: ${device.last_seen}`;
-    diagnosisDiv.appendChild(statusDot);
+            const dot = document.createElement('span');
+            dot.className = 'status-dot';
+            if(device.status === 'online') dot.style.backgroundColor = 'green';
+            else if(device.status === 'offline' && device.last_seen_minutes < 15) dot.style.backgroundColor = 'orange';
+            else dot.style.backgroundColor = 'red';
 
-    // RSSI
-    const rssiSpan = document.createElement('span');
-    rssiSpan.textContent = '📶 ' + (device.rssi !== '--' ? device.rssi + ' dBm' : '--');
-    diagnosisDiv.appendChild(rssiSpan);
+            const lastSeen = document.createElement('span');
+            lastSeen.textContent = device.last_seen ? new Date(device.last_seen).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '--';
 
-    // Laatst gezien
-    const lastSeenSpan = document.createElement('span');
-    const d = new Date(device.last_seen);
-    const hh = d.getHours().toString().padStart(2,'0');
-    const mm = d.getMinutes().toString().padStart(2,'0');
-    lastSeenSpan.textContent = '🕑 ' + (device.last_seen !== '--' ? hh + ':' + mm : '--:--');
-    diagnosisDiv.appendChild(lastSeenSpan);
+            const fw = document.createElement('span');
+            fw.textContent = 'fw: ' + (device.firmware || '--');
 
-    // Firmware
-    const fwSpan = document.createElement('span');
-    fwSpan.textContent = 'ℹ️ fw: ' + (device.firmware !== '--' ? device.firmware : '--');
-    diagnosisDiv.appendChild(fwSpan);
+            const rssi = document.createElement('span');
+            rssi.textContent = '📶 ' + (device.rssi || '--');
 
-    row.appendChild(nameDiv);
-    row.appendChild(consoleButton);
-    row.appendChild(diagnosisDiv);
+            diagnosis.appendChild(dot);
+            diagnosis.appendChild(rssi);
+            diagnosis.appendChild(lastSeen);
+            diagnosis.appendChild(fw);
 
-    document.getElementById('controllers').appendChild(row);
-}
-
-function fetchControllers() {
-    fetch(WORKER_URL)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('controllers').innerHTML = '';
-            const now = new Date();
-            data.forEach(dev => {
-                if(dev.last_seen && dev.last_seen !== '--'){
-                    const last = new Date(dev.last_seen);
-                    dev.last_seen_diff = (now - last)/60000; // verschil in minuten
-                } else dev.last_seen_diff = 9999;
-                createControllerRow(dev);
-            });
-        })
-        .catch(err => {
-            console.error('Fout bij ophalen data:', err);
-            document.getElementById('controllers').innerHTML = '<div style="color:red;">Fout bij ophalen van de diagnose. Controleer de Cloudflare Worker.</div>';
+            row.appendChild(nameDiv);
+            row.appendChild(consoleButton);
+            row.appendChild(diagnosis);
+            container.appendChild(row);
         });
+    } catch(e) {
+        container.innerHTML = 'Fout bij ophalen van de diagnose. Controleer de Cloudflare Worker.';
+        console.error(e);
+    }
 }
 
-// Eerste keer ophalen + interval
-fetchControllers();
-setInterval(fetchControllers, 30000);
+// Eerste keer laden
+loadControllers();
+// Refresh elke 30 seconden
+setInterval(loadControllers, 30000);
 </script>
 </body>
 </html>
