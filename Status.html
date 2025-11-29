@@ -2,47 +2,51 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Controller Status Dashboard</title>
+  <title>Controller Status - Zarlar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css"> <!-- veronderstel je bestaande CSS -->
   <style>
+    /* Basis styling in lijn met je huidige huisstijl */
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f4f4f9;
+      font-family: 'Helvetica', 'Arial', sans-serif;
+      background-color: #f5f5f7;
       color: #333;
+      margin: 0;
+      padding: 20px;
     }
 
     h1 {
       text-align: center;
       margin-bottom: 30px;
+      color: #004080; /* voorbeeld primaire kleur uit je huisstijl */
     }
 
     #controller-links {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 15px;
+      justify-content: center;
     }
 
     .controller-box {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      background-color: #ffffff;
+      border-radius: 8px;
       padding: 15px 20px;
       min-width: 180px;
       text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
       transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .controller-box:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
     .controller-box a {
       text-decoration: none;
-      font-weight: bold;
       color: #007bff;
+      font-weight: bold;
       display: block;
       font-size: 16px;
     }
@@ -60,16 +64,19 @@
 
     .note {
       text-align: center;
-      font-size: 0.9em;
       margin-top: 25px;
+      font-size: 0.9em;
       color: #666;
     }
   </style>
 </head>
 <body>
-  <h1>Controller Status Dashboard</h1>
+  <h1>Controller Status - Zarlar</h1>
   <div id="controller-links"></div>
-  <div class="note">Klik op een controller om de live events in de Particle Console te bekijken. Je moet ingelogd zijn in Particle om de events te zien.</div>
+  <div class="note">
+    Klik op een controller om de live events in de Particle Console te bekijken.<br>
+    Je moet ingelogd zijn bij Particle om de events te zien.
+  </div>
 
   <script>
     const DEVICE_MAP = {
@@ -91,6 +98,7 @@
     for (const [id, name] of Object.entries(DEVICE_MAP)) {
       const box = document.createElement("div");
       box.className = "controller-box";
+      // Link naar Particle Console events per device
       box.innerHTML = `<a href="https://console.particle.io/devices/${id}/events" target="_blank">${name}</a>`;
       container.appendChild(box);
     }
