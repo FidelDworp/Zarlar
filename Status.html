@@ -35,6 +35,9 @@
             padding: 8px;
             border-radius: 5px;
             text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .controller-box:hover {
@@ -47,6 +50,15 @@
             font-weight: bold;
             display: block;
         }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: grey;
+            margin-left: 10px;
+        }
+        .online { background-color: limegreen; }
+        .offline { background-color: red; }
         .group-title {
             font-weight: bold;
             margin-top: 15px;
@@ -81,14 +93,17 @@
 <h1>Zarlardinge Schuur - Controller Status</h1>
 
 <div class="status-container" id="controller-links">
-    <!-- Buttons worden hier via script toegevoegd -->
+    <!-- Buttons + status indicator worden hier via script toegevoegd -->
 </div>
 
 <div class="button-container">
     <a href="index.html" class="home-button">Home</a>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
+    const particle = new Particle();
+    const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b'; // gebruik jouw token
     const DEVICE_MAP = {
       "30002c000547343233323032": "R1-BandB",
       "5600420005504b464d323520": "R2-Badkamer",
@@ -103,9 +118,6 @@
       "290044000147353138383138": "S-HVAC"
     };
 
-    const container = document.getElementById("controller-links");
-
-    // Roomsensors groep
     const roomIDs = [
       "30002c000547343233323032",
       "5600420005504b464d323520",
@@ -117,28 +129,51 @@
       "2d0032001247333438353733"
     ];
 
-    container.innerHTML += '<div class="group-title">Roomsensors</div>';
-    roomIDs.forEach(id => {
-      const box = document.createElement('div');
-      box.className = 'controller-box';
-      box.innerHTML = `<a href="https://console.particle.io/devices/${id}/events" target="_blank">${DEVICE_MAP[id]}</a>`;
-      container.appendChild(box);
-    });
-
-    // System sensors groep
     const systemIDs = [
       "390028001147343339383037",
       "310049000f47343432313031",
       "290044000147353138383138"
     ];
 
+    const container = document.getElementById("controller-links");
+
+    function createBox(id) {
+        const box = document.createElement('div');
+        box.className = 'controller-box';
+        box.innerHTML = `<a href="https://console.particle.io/devices/${id}" target="_blank">${DEVICE_MAP[id]}</a><span class="status-indicator" id="status-${id}"></span>`;
+        container.appendChild(box);
+    }
+
+    function updateStatus(id) {
+        particle.getDevice({ deviceId: id, auth: token })
+            .then(resp => {
+                const online = resp.body.connected;
+                const indicator = document.getElementById(`status-${id}`);
+                indicator.classList.remove('online','offline');
+                indicator.classList.add(online ? 'online' : 'offline');
+            })
+            .catch(err => {
+                const indicator = document.getElementById(`status-${id}`);
+                indicator.classList.remove('online','offline');
+                indicator.classList.add('offline');
+                console.error('Fout bij ophalen device status', id, err);
+            });
+    }
+
+    function refreshAll() {
+        [...roomIDs, ...systemIDs].forEach(updateStatus);
+    }
+
+    container.innerHTML += '<div class="group-title">Roomsensors</div>';
+    roomIDs.forEach(createBox);
+
     container.innerHTML += '<div class="group-title">System sensors</div>';
-    systemIDs.forEach(id => {
-      const box = document.createElement('div');
-      box.className = 'controller-box';
-      box.innerHTML = `<a href="https://console.particle.io/devices/${id}/events" target="_blank">${DEVICE_MAP[id]}</a>`;
-      container.appendChild(box);
-    });
+    systemIDs.forEach(createBox);
+
+    // Eerste keer ophalen
+    refreshAll();
+    // Automatisch elke 30 seconden bijwerken
+    setInterval(refreshAll, 30000);
 </script>
 
 </body>
