@@ -10,78 +10,96 @@
             background-repeat: no-repeat;
             font-family: Arial, sans-serif;
             color: #333;
-            margin: 20px;
+            margin: 10px;
         }
         h1 {
-            font-size: 18px;
-            margin-bottom: 10px;
+            font-size: 16px;
+            margin-bottom: 8px;
         }
         .explanation {
             background-color: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
-            padding: 10px;
-            max-width: 500px;
-            margin-bottom: 15px;
-            font-size: 14px;
+            padding: 8px;
+            max-width: 480px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        .explanation .worker-note {
+            font-size: 11px;
+            color: #555;
+            margin-top: 5px;
         }
         .legend {
-            margin-top: 10px;
-            font-size: 14px;
+            margin-top: 6px;
+            font-size: 12px;
         }
         .legend span {
             display: inline-flex;
             align-items: center;
-            margin-right: 15px;
+            margin-right: 10px;
         }
         .legend .dot {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             display: inline-block;
-            margin-right: 5px;
+            margin-right: 3px;
+        }
+        .legend .wifi {
+            width: 14px;
+            height: 14px;
+            margin-right: 3px;
         }
         .controller-container {
             background-color: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
-            padding: 15px;
-            max-width: 500px;
-            margin-bottom: 20px;
+            padding: 10px;
+            max-width: 480px;
+            margin-bottom: 15px;
         }
         .controller-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 5px 0;
-            padding: 5px 0;
+            margin: 3px 0;
+            padding: 4px 0;
             border-bottom: 1px solid rgba(0,0,0,0.1);
+            font-size: 13px;
         }
         .controller-name {
-            font-weight: bold;
             flex: 1;
+            font-weight: bold;
+            overflow-wrap: break-word;
         }
         .console-button {
-            padding: 5px 10px;
+            padding: 4px 8px;
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 3px;
             cursor: pointer;
             text-decoration: none;
-            margin-right: 10px;
+            margin-right: 6px;
+            font-size: 12px;
         }
         .console-button:hover {
             background-color: #0056b3;
         }
         .diagnosis {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             align-items: center;
+            font-size: 12px;
         }
         .status-dot {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             display: inline-block;
+        }
+        .wifi-icon {
+            width: 14px;
+            height: 14px;
         }
     </style>
 </head>
@@ -89,13 +107,18 @@
 <h1>Zarlardinge Schuur - Controllers Diagnose</h1>
 
 <div class="explanation">
-    Deze pagina toont alle Photons van het huis met directe toegang tot de Particle Console en diagnose-informatie.
+    Deze pagina toont alle Photons van het huis met directe toegang tot de Particle Console en diagnose-informatie, inclusief wifi-signaalsterkte.
     <div class="legend">
         <span><span class="dot" style="background-color:green;"></span>Online</span>
         <span><span class="dot" style="background-color:orange;"></span>Offline &lt; 15 min</span>
         <span><span class="dot" style="background-color:red;"></span>Offline ≥ 15 min</span>
+        <span>📶 Wifi signaal (RSSI)</span>
         <span>🕑 Laatst gezien</span>
         <span>ℹ️ Firmware versie</span>
+    </div>
+    <div class="worker-note">
+        Deze pagina gebruikt een Cloudflare Worker service om de diagnose-informatie van de Photon controllers op te halen. 
+        Je Particle login is veilig en wordt niet blootgesteld.
     </div>
 </div>
 
@@ -103,10 +126,8 @@
     <!-- Controllers komen hier via JS -->
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
-const particle = new Particle();
-const token = 'BA9D9E1ED9F70CC5DB24DE2DB21764A3A3AFE28B'; // Vervang door jouw token
+const WORKER_URL = 'https://controllers-diagnose.filip-delannoy.workers.dev/';
 
 const DEVICE_MAP = {
     "30002c000547343233323032": "R1-BandB",
@@ -122,8 +143,15 @@ const DEVICE_MAP = {
     "290044000147353138383138": "S-HVAC"
 };
 
-// Functie om een controller rij aan te maken
-function createControllerRow(deviceId, name) {
+function getWifiIcon(rssi) {
+    // simpele icon suggestie
+    if(rssi>= -50) return '📶'; // sterk
+    else if(rssi >= -70) return '📶'; // gemiddeld
+    else if(rssi >= -90) return '📶'; // zwak
+    return '❌';
+}
+
+async function createControllerRow(deviceId, name) {
     const row = document.createElement('div');
     row.className = 'controller-row';
     
@@ -145,6 +173,10 @@ function createControllerRow(deviceId, name) {
     statusDot.title = 'Laden...';
     diagnosisDiv.appendChild(statusDot);
     
+    const wifiSpan = document.createElement('span');
+    wifiSpan.textContent = '📶';
+    diagnosisDiv.appendChild(wifiSpan);
+    
     const lastSeen = document.createElement('span');
     lastSeen.textContent = '--:--';
     diagnosisDiv.appendChild(lastSeen);
@@ -159,51 +191,47 @@ function createControllerRow(deviceId, name) {
     
     document.getElementById('controllers').appendChild(row);
     
-    particle.getDevice({ deviceId: deviceId, auth: token })
-        .then(data => {
-            if (data && data.body) {
-                const device = data.body;
-                const last = new Date(device.last_heard);
-                lastSeen.textContent = last.getHours().toString().padStart(2,'0') + ':' + last.getMinutes().toString().padStart(2,'0');
-                fw.textContent = 'fw: ' + device.firmware_version;
-                
-                const now = new Date();
-                const diffMinutes = (now - last)/60000;
-                
-                if (device.connected) {
-                    statusDot.style.backgroundColor = 'green';
-                    statusDot.title = 'Online\nLaatst gezien: ' + lastSeen.textContent;
-                } else if (diffMinutes < 15) {
-                    statusDot.style.backgroundColor = 'orange';
-                    statusDot.title = 'Offline < 15 min\nLaatst gezien: ' + lastSeen.textContent;
-                } else {
-                    statusDot.style.backgroundColor = 'red';
-                    statusDot.title = 'Offline ≥ 15 min\nLaatst gezien: ' + lastSeen.textContent;
-                }
+    try {
+        const res = await fetch(`${WORKER_URL}?deviceId=${deviceId}`);
+        const device = await res.json();
+        const last = new Date(device.last_heard);
+        lastSeen.textContent = last.getHours().toString().padStart(2,'0') + ':' + last.getMinutes().toString().padStart(2,'0');
+        fw.textContent = 'fw: ' + device.firmware_version;
+        wifiSpan.textContent = device.wifi_rssi !== undefined ? getWifiIcon(device.wifi_rssi) + ' ' + device.wifi_rssi + 'dBm' : '📶 ?';
+        
+        if (device.connected) {
+            statusDot.style.backgroundColor = 'green';
+            statusDot.title = 'Online\nLaatst gezien: ' + lastSeen.textContent;
+        } else {
+            const now = new Date();
+            const diffMinutes = (now - last)/60000;
+            if(diffMinutes < 15){
+                statusDot.style.backgroundColor = 'orange';
+                statusDot.title = 'Offline < 15 min\nLaatst gezien: ' + lastSeen.textContent;
+            } else {
+                statusDot.style.backgroundColor = 'red';
+                statusDot.title = 'Offline ≥ 15 min\nLaatst gezien: ' + lastSeen.textContent;
             }
-        })
-        .catch(err => {
-            console.error('Error fetching device:', deviceId, err);
-            statusDot.style.backgroundColor = 'gray';
-            statusDot.title = 'Fout bij ophalen';
-            lastSeen.textContent = 'err';
-            fw.textContent = 'err';
-        });
+        }
+    } catch(err) {
+        console.error('Error fetching device via Worker:', deviceId, err);
+        statusDot.style.backgroundColor = 'gray';
+        statusDot.title = 'Fout bij ophalen';
+        wifiSpan.textContent = 'err';
+        lastSeen.textContent = 'err';
+        fw.textContent = 'err';
+    }
 }
 
-// Maak alle controller rijen
-for (const [id, name] of Object.entries(DEVICE_MAP)) {
-    createControllerRow(id, name);
-}
-
-// Auto-refresh elke 30 seconden
-setInterval(() => {
+function loadControllers() {
     document.getElementById('controllers').innerHTML = '';
-    for (const [id, name] of Object.entries(DEVICE_MAP)) {
+    for(const [id,name] of Object.entries(DEVICE_MAP)){
         createControllerRow(id, name);
     }
-}, 30000);
+}
 
+loadControllers();
+setInterval(loadControllers, 30000);
 </script>
 </body>
 </html>
