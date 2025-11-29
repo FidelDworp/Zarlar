@@ -20,7 +20,7 @@
             background-color: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
             padding: 10px;
-            max-width: 500px;
+            max-width: 600px;
             margin-bottom: 15px;
             font-size: 14px;
         }
@@ -44,7 +44,7 @@
             background-color: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
             padding: 15px;
-            max-width: 500px;
+            max-width: 600px;
             margin-bottom: 20px;
         }
         .controller-row {
@@ -54,10 +54,11 @@
             margin: 5px 0;
             padding: 5px 0;
             border-bottom: 1px solid rgba(0,0,0,0.1);
+            flex-wrap: wrap;
         }
         .controller-name {
             font-weight: bold;
-            flex: 1;
+            flex: 1 1 150px;
         }
         .console-button {
             padding: 5px 10px;
@@ -68,6 +69,7 @@
             cursor: pointer;
             text-decoration: none;
             margin-right: 10px;
+            flex: 0 0 auto;
         }
         .console-button:hover {
             background-color: #0056b3;
@@ -76,12 +78,17 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex: 1 1 auto;
+            flex-wrap: wrap;
         }
         .status-dot {
             width: 14px;
             height: 14px;
             border-radius: 50%;
             display: inline-block;
+        }
+        .diagnosis span {
+            font-size: 12px;
         }
     </style>
 </head>
@@ -94,21 +101,23 @@
         <span><span class="dot" style="background-color:green;"></span>Online</span>
         <span><span class="dot" style="background-color:orange;"></span>Offline &lt; 15 min</span>
         <span><span class="dot" style="background-color:red;"></span>Offline ≥ 15 min</span>
+        <span>📶 Wifi signaal (RSSI)</span>
         <span>🕑 Laatst gezien</span>
         <span>ℹ️ Firmware versie</span>
     </div>
-    <div style="margin-top:5px;font-size:12px;">
-        Deze pagina gebruikt een Cloudflare Worker service (https://controllers-diagnose.filip-delannoy.workers.dev/) 
-        om de diagnose-informatie van de Photon controllers op te halen.
-        Je Particle login is veilig en wordt niet blootgesteld.
+    <div style="margin-top:5px; font-size:12px;">
+        Deze pagina gebruikt een Cloudflare Worker service 
+        (<a href="https://controllers-diagnose.filip-delannoy.workers.dev/" target="_blank">controllers-diagnose.filip-delannoy.workers.dev</a>) 
+        om de diagnose-informatie van de Photon controllers op te halen. Je Particle login is veilig en wordt niet blootgesteld.
     </div>
 </div>
 
-<div id="controllers" class="controller-container"></div>
+<div id="controllers" class="controller-container">
+    <!-- Controllers komen hier via JS -->
+</div>
 
 <script>
-const WORKER_URL = "https://controllers-diagnose.filip-delannoy.workers.dev/";
-
+const WORKER_URL = 'https://controllers-diagnose.filip-delannoy.workers.dev/';
 const DEVICE_MAP = {
     "30002c000547343233323032": "R1-BandB",
     "5600420005504b464d323520": "R2-Badkamer",
@@ -123,82 +132,80 @@ const DEVICE_MAP = {
     "290044000147353138383138": "S-HVAC"
 };
 
-function createControllerRow(controller) {
+function createControllerRow(device) {
     const row = document.createElement('div');
     row.className = 'controller-row';
-    
+
     const nameDiv = document.createElement('div');
     nameDiv.className = 'controller-name';
-    nameDiv.textContent = controller.name;
-    
+    nameDiv.textContent = device.name;
+
     const consoleButton = document.createElement('a');
-    consoleButton.href = `https://console.particle.io/devices/${controller.id}`;
+    consoleButton.href = `https://console.particle.io/devices/${device.id}`;
     consoleButton.target = '_blank';
     consoleButton.className = 'console-button';
     consoleButton.textContent = 'Console';
-    
+
     const diagnosisDiv = document.createElement('div');
     diagnosisDiv.className = 'diagnosis';
-    
+
+    // Status bolletje
     const statusDot = document.createElement('span');
     statusDot.className = 'status-dot';
-    if(controller.status === "online") statusDot.style.backgroundColor = 'green';
-    else if(controller.status === "offline" && controller.last_seen_delta < 15) statusDot.style.backgroundColor = 'orange';
+    if(device.status === 'online') statusDot.style.backgroundColor = 'green';
+    else if(device.status === 'offline' && device.last_seen_diff < 15) statusDot.style.backgroundColor = 'orange';
     else statusDot.style.backgroundColor = 'red';
-    statusDot.title = `Status: ${controller.status}\nLaatst gezien: ${controller.last_seen}`;
+    statusDot.title = `Status: ${device.status}\nLaatst gezien: ${device.last_seen}`;
     diagnosisDiv.appendChild(statusDot);
-    
-    const lastSeen = document.createElement('span');
-    lastSeen.textContent = controller.last_seen;
-    diagnosisDiv.appendChild(lastSeen);
-    
-    const fw = document.createElement('span');
-    fw.textContent = 'fw: ' + (controller.firmware || '--');
-    diagnosisDiv.appendChild(fw);
-    
+
+    // RSSI
+    const rssiSpan = document.createElement('span');
+    rssiSpan.textContent = '📶 ' + (device.rssi !== '--' ? device.rssi + ' dBm' : '--');
+    diagnosisDiv.appendChild(rssiSpan);
+
+    // Laatst gezien
+    const lastSeenSpan = document.createElement('span');
+    const d = new Date(device.last_seen);
+    const hh = d.getHours().toString().padStart(2,'0');
+    const mm = d.getMinutes().toString().padStart(2,'0');
+    lastSeenSpan.textContent = '🕑 ' + (device.last_seen !== '--' ? hh + ':' + mm : '--:--');
+    diagnosisDiv.appendChild(lastSeenSpan);
+
+    // Firmware
+    const fwSpan = document.createElement('span');
+    fwSpan.textContent = 'ℹ️ fw: ' + (device.firmware !== '--' ? device.firmware : '--');
+    diagnosisDiv.appendChild(fwSpan);
+
     row.appendChild(nameDiv);
     row.appendChild(consoleButton);
     row.appendChild(diagnosisDiv);
-    
+
     document.getElementById('controllers').appendChild(row);
 }
 
-function fetchAll() {
+function fetchControllers() {
     fetch(WORKER_URL)
-    .then(resp => resp.json())
-    .then(data => {
-        document.getElementById('controllers').innerHTML = '';
-        data.forEach(controller => {
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('controllers').innerHTML = '';
             const now = new Date();
-            const lastSeen = controller.last_seen ? new Date(controller.last_seen) : null;
-            let delta = 999;
-            let lastText = '--:--';
-            if(lastSeen) {
-                delta = (now - lastSeen)/60000;
-                lastText = lastSeen.getHours().toString().padStart(2,'0') + ':' + lastSeen.getMinutes().toString().padStart(2,'0');
-            }
-            createControllerRow({
-                id: controller.id,
-                name: controller.name,
-                status: controller.status,
-                last_seen: lastText,
-                last_seen_delta: delta,
-                firmware: controller.firmware
+            data.forEach(dev => {
+                if(dev.last_seen && dev.last_seen !== '--'){
+                    const last = new Date(dev.last_seen);
+                    dev.last_seen_diff = (now - last)/60000; // verschil in minuten
+                } else dev.last_seen_diff = 9999;
+                createControllerRow(dev);
             });
+        })
+        .catch(err => {
+            console.error('Fout bij ophalen data:', err);
+            document.getElementById('controllers').innerHTML = '<div style="color:red;">Fout bij ophalen van de diagnose. Controleer de Cloudflare Worker.</div>';
         });
-    })
-    .catch(err => {
-        console.error("Fout bij ophalen data van Worker:", err);
-        document.getElementById('controllers').innerHTML = '<p style="color:red;">Fout bij ophalen data</p>';
-    });
 }
 
-// Eerst ophalen
-fetchAll();
-
-// Auto-refresh elke 30 sec
-setInterval(fetchAll, 30000);
+// Eerste keer ophalen + interval
+fetchControllers();
+setInterval(fetchControllers, 30000);
 </script>
-
 </body>
 </html>
