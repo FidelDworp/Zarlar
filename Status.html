@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Zarlardinge Schuur - Controller Status</title>
+    <title>Zarlardinge Schuur - Controllers Diagnose</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
@@ -15,166 +14,196 @@
         }
         h1 {
             font-size: 18px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #fff;
-            text-shadow: 1px 1px 3px #000;
+            margin-bottom: 10px;
         }
-        .status-container {
-            background-color: rgba(255, 255, 255, 0.8);
+        .explanation {
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 8px;
+            padding: 10px;
+            max-width: 500px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .legend {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        .legend .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .controller-container {
+            background-color: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
             padding: 15px;
-            max-width: 320px;
-            margin: 0 auto;
+            max-width: 500px;
+            margin-bottom: 20px;
         }
-        .controller-box {
-            margin: 5px 0;
-            font-size: 14px;
-            background: rgba(0,0,0,0.5);
-            color: #00ffff;
-            padding: 8px;
-            border-radius: 5px;
-            text-align: center;
+        .controller-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
         }
-        .controller-box:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-        }
-        .controller-box a {
-            text-decoration: none;
-            color: inherit;
+        .controller-name {
             font-weight: bold;
-            display: block;
+            flex: 1;
         }
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: grey;
-            margin-left: 10px;
-        }
-        .online { background-color: limegreen; }
-        .offline { background-color: red; }
-        .group-title {
-            font-weight: bold;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-size: 14px;
-            text-align: center;
-        }
-        .button-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .home-button {
-            padding: 10px 20px;
+        .console-button {
+            padding: 5px 10px;
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
             text-decoration: none;
-            text-align: center;
+            margin-right: 10px;
         }
-        .home-button:hover {
+        .console-button:hover {
             background-color: #0056b3;
+        }
+        .diagnosis {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
+<h1>Zarlardinge Schuur - Controllers Diagnose</h1>
 
-<h1>Zarlardinge Schuur - Controller Status</h1>
-
-<div class="status-container" id="controller-links">
-    <!-- Buttons + status indicator worden hier via script toegevoegd -->
+<div class="explanation">
+    Deze pagina toont alle Photons van het huis met directe toegang tot de Particle Console en diagnose-informatie.
+    <div class="legend">
+        <span><span class="dot" style="background-color:green;"></span>Online</span>
+        <span><span class="dot" style="background-color:orange;"></span>Offline &lt; 15 min</span>
+        <span><span class="dot" style="background-color:red;"></span>Offline ≥ 15 min</span>
+        <span>🕑 Laatst gezien</span>
+        <span>ℹ️ Firmware versie</span>
+    </div>
 </div>
 
-<div class="button-container">
-    <a href="index.html" class="home-button">Home</a>
+<div id="controllers" class="controller-container">
+    <!-- Controllers komen hier via JS -->
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 <script>
-    const particle = new Particle();
-    const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b'; // gebruik jouw token
-    const DEVICE_MAP = {
-      "30002c000547343233323032": "R1-BandB",
-      "5600420005504b464d323520": "R2-Badkamer",
-      "420035000e47343432313031": "R3-Inkom",
-      "310017001647373335333438": "R4-Keuken",
-      "33004f000e504b464d323520": "R5-Wasplaats",
-      "210042000b47343432313031": "R6-Eetplaats",
-      "410038000547353138383138": "R7-Zitplaats",
-      "2d0032001247333438353733": "R8-Access",
-      "390028001147343339383037": "S-Outside",
-      "310049000f47343432313031": "S-ECO-boiler",
-      "290044000147353138383138": "S-HVAC"
-    };
+const particle = new Particle();
+const token = 'BA9D9E1ED9F70CC5DB24DE2DB21764A3A3AFE28B'; // Vervang door jouw token
 
-    const roomIDs = [
-      "30002c000547343233323032",
-      "5600420005504b464d323520",
-      "420035000e47343432313031",
-      "310017001647373335333438",
-      "33004f000e504b464d323520",
-      "210042000b47343432313031",
-      "410038000547353138383138",
-      "2d0032001247333438353733"
-    ];
+const DEVICE_MAP = {
+    "30002c000547343233323032": "R1-BandB",
+    "5600420005504b464d323520": "R2-Badkamer",
+    "420035000e47343432313031": "R3-Inkom",
+    "310017001647373335333438": "R4-Keuken",
+    "33004f000e504b464d323520": "R5-Wasplaats",
+    "210042000b47343432313031": "R6-Eetplaats",
+    "410038000547353138383138": "R7-Zitplaats",
+    "2d0032001247333438353733": "R8-Access",
+    "390028001147343339383037": "S-Outside",
+    "310049000f47343432313031": "S-ECO-boiler",
+    "290044000147353138383138": "S-HVAC"
+};
 
-    const systemIDs = [
-      "390028001147343339383037",
-      "310049000f47343432313031",
-      "290044000147353138383138"
-    ];
+// Functie om een controller rij aan te maken
+function createControllerRow(deviceId, name) {
+    const row = document.createElement('div');
+    row.className = 'controller-row';
+    
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'controller-name';
+    nameDiv.textContent = name;
+    
+    const consoleButton = document.createElement('a');
+    consoleButton.href = `https://console.particle.io/devices/${deviceId}`;
+    consoleButton.target = '_blank';
+    consoleButton.className = 'console-button';
+    consoleButton.textContent = 'Console';
+    
+    const diagnosisDiv = document.createElement('div');
+    diagnosisDiv.className = 'diagnosis';
+    
+    const statusDot = document.createElement('span');
+    statusDot.className = 'status-dot';
+    statusDot.title = 'Laden...';
+    diagnosisDiv.appendChild(statusDot);
+    
+    const lastSeen = document.createElement('span');
+    lastSeen.textContent = '--:--';
+    diagnosisDiv.appendChild(lastSeen);
+    
+    const fw = document.createElement('span');
+    fw.textContent = 'fw: --';
+    diagnosisDiv.appendChild(fw);
+    
+    row.appendChild(nameDiv);
+    row.appendChild(consoleButton);
+    row.appendChild(diagnosisDiv);
+    
+    document.getElementById('controllers').appendChild(row);
+    
+    particle.getDevice({ deviceId: deviceId, auth: token })
+        .then(data => {
+            if (data && data.body) {
+                const device = data.body;
+                const last = new Date(device.last_heard);
+                lastSeen.textContent = last.getHours().toString().padStart(2,'0') + ':' + last.getMinutes().toString().padStart(2,'0');
+                fw.textContent = 'fw: ' + device.firmware_version;
+                
+                const now = new Date();
+                const diffMinutes = (now - last)/60000;
+                
+                if (device.connected) {
+                    statusDot.style.backgroundColor = 'green';
+                    statusDot.title = 'Online\nLaatst gezien: ' + lastSeen.textContent;
+                } else if (diffMinutes < 15) {
+                    statusDot.style.backgroundColor = 'orange';
+                    statusDot.title = 'Offline < 15 min\nLaatst gezien: ' + lastSeen.textContent;
+                } else {
+                    statusDot.style.backgroundColor = 'red';
+                    statusDot.title = 'Offline ≥ 15 min\nLaatst gezien: ' + lastSeen.textContent;
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching device:', deviceId, err);
+            statusDot.style.backgroundColor = 'gray';
+            statusDot.title = 'Fout bij ophalen';
+            lastSeen.textContent = 'err';
+            fw.textContent = 'err';
+        });
+}
 
-    const container = document.getElementById("controller-links");
+// Maak alle controller rijen
+for (const [id, name] of Object.entries(DEVICE_MAP)) {
+    createControllerRow(id, name);
+}
 
-    function createBox(id) {
-        const box = document.createElement('div');
-        box.className = 'controller-box';
-        box.innerHTML = `<a href="https://console.particle.io/devices/${id}" target="_blank">${DEVICE_MAP[id]}</a><span class="status-indicator" id="status-${id}"></span>`;
-        container.appendChild(box);
+// Auto-refresh elke 30 seconden
+setInterval(() => {
+    document.getElementById('controllers').innerHTML = '';
+    for (const [id, name] of Object.entries(DEVICE_MAP)) {
+        createControllerRow(id, name);
     }
+}, 30000);
 
-    function updateStatus(id) {
-        particle.getDevice({ deviceId: id, auth: token })
-            .then(resp => {
-                const online = resp.body.connected;
-                const indicator = document.getElementById(`status-${id}`);
-                indicator.classList.remove('online','offline');
-                indicator.classList.add(online ? 'online' : 'offline');
-            })
-            .catch(err => {
-                const indicator = document.getElementById(`status-${id}`);
-                indicator.classList.remove('online','offline');
-                indicator.classList.add('offline');
-                console.error('Fout bij ophalen device status', id, err);
-            });
-    }
-
-    function refreshAll() {
-        [...roomIDs, ...systemIDs].forEach(updateStatus);
-    }
-
-    container.innerHTML += '<div class="group-title">Roomsensors</div>';
-    roomIDs.forEach(createBox);
-
-    container.innerHTML += '<div class="group-title">System sensors</div>';
-    systemIDs.forEach(createBox);
-
-    // Eerste keer ophalen
-    refreshAll();
-    // Automatisch elke 30 seconden bijwerken
-    setInterval(refreshAll, 30000);
 </script>
-
 </body>
 </html>
