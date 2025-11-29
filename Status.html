@@ -4,81 +4,87 @@
   <meta charset="UTF-8">
   <title>Controller Status - Zarlar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css"> <!-- veronderstel je bestaande CSS -->
+  <link rel="stylesheet" href="style.css"> <!-- gebruik je bestaande CSS -->
   <style>
-    /* Basis styling in lijn met je huidige huisstijl */
     body {
       font-family: 'Helvetica', 'Arial', sans-serif;
-      background-color: #f5f5f7;
-      color: #333;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      background: url('achtergrond.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+
+    .home-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: bold;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 30px;
-      color: #004080; /* voorbeeld primaire kleur uit je huisstijl */
+      margin-top: 60px;
+      margin-bottom: 40px;
+      color: #ffffff;
+      text-shadow: 1px 1px 3px #000;
     }
 
     #controller-links {
       display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      max-width: 300px;
+      margin: 0 auto;
     }
 
     .controller-box {
-      background-color: #ffffff;
+      width: 100%;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
       border-radius: 8px;
-      padding: 15px 20px;
-      min-width: 180px;
       text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
       transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .controller-box:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
     }
 
     .controller-box a {
       text-decoration: none;
-      color: #007bff;
+      color: #00ffff;
       font-weight: bold;
       display: block;
+      font-size: 14px;
+    }
+
+    .group-title {
+      margin-top: 20px;
+      margin-bottom: 10px;
       font-size: 16px;
-    }
-
-    .controller-box a:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 600px) {
-      #controller-links {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
-
-    .note {
-      text-align: center;
-      margin-top: 25px;
-      font-size: 0.9em;
-      color: #666;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #000;
     }
   </style>
 </head>
 <body>
-  <h1>Controller Status - Zarlar</h1>
+
+  <a href="index.html" class="home-button">HOME</a>
+
+  <h1>Controller Status</h1>
+
   <div id="controller-links"></div>
-  <div class="note">
-    Klik op een controller om de live events in de Particle Console te bekijken.<br>
-    Je moet ingelogd zijn bij Particle om de events te zien.
-  </div>
 
   <script>
+    // Roomsensors eerst, dan system sensors
     const DEVICE_MAP = {
       "30002c000547343233323032": "R1-BandB",
       "5600420005504b464d323520": "R2-Badkamer",
@@ -95,13 +101,41 @@
 
     const container = document.getElementById("controller-links");
 
-    for (const [id, name] of Object.entries(DEVICE_MAP)) {
-      const box = document.createElement("div");
-      box.className = "controller-box";
-      // Link naar Particle Console events per device
-      box.innerHTML = `<a href="https://console.particle.io/devices/${id}/events" target="_blank">${name}</a>`;
+    // Roomsensors groep
+    const roomIDs = [
+      "30002c000547343233323032",
+      "5600420005504b464d323520",
+      "420035000e47343432313031",
+      "310017001647373335333438",
+      "33004f000e504b464d323520",
+      "210042000b47343432313031",
+      "410038000547353138383138",
+      "2d0032001247333438353733"
+    ];
+
+    container.innerHTML += '<div class="group-title">Roomsensors</div>';
+    roomIDs.forEach(id => {
+      const box = document.createElement('div');
+      box.className = 'controller-box';
+      box.innerHTML = `<a href="https://console.particle.io/devices/${id}/events" target="_blank">${DEVICE_MAP[id]}</a>`;
       container.appendChild(box);
-    }
+    });
+
+    // System sensors groep
+    const systemIDs = [
+      "390028001147343339383037",
+      "310049000f47343432313031",
+      "290044000147353138383138"
+    ];
+
+    container.innerHTML += '<div class="group-title">System sensors</div>';
+    systemIDs.forEach(id => {
+      const box = document.createElement('div');
+      box.className = 'controller-box';
+      box.innerHTML = `<a href="https://console.particle.io/devices/${id}/events" target="_blank">${DEVICE_MAP[id]}</a>`;
+      container.appendChild(box);
+    });
   </script>
+
 </body>
 </html>
