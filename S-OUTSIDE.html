@@ -1,134 +1,136 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Zarlardinge Schuur - S-OUTSIDE Status</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background-image: url('BG.jpg'); /* Jouw achtergrondfoto */
-        background-size: cover;
-        background-position: center;
-        color: black;
-        text-align: center;
-        padding: 20px;
-    }
-    h1 {
-        margin-bottom: 20px;
-    }
-    .status-item {
-        font-size: 18px;
-        margin: 5px 0;
-    }
-    .label {
-        font-weight: bold;
-        margin-right: 5px;
-    }
-    .button-container {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 15px;
-    }
-    .update-button, .home-button {
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        text-decoration: none;
-        text-align: center;
-    }
-    .update-button:hover, .home-button:hover {
-        background-color: #0056b3;
-    }
-    /* Zon-container styling */
-    #sun-container {
-        display: inline-block;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        text-align: center;
-        transition: background-color 0.5s;
-    }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
+    <title>Zarlardinge Schuur - S-OUTSIDE Status</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url("BG.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .status-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        #sun-container {
+            display: inline-block;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: background-color 0.5s;
+        }
+        #lux-value {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: black;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .update-button, .home-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .update-button:hover, .home-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 </head>
 <body>
+    <h1>Zarlardinge Schuur - S-OUTSIDE Status</h1>
+    <div class="status-container">
+        <!-- Zonnetje met dynamische kleur -->
+        <div id="sun-container">
+            <svg id="sun-svg" width="100" height="100">
+                <circle id="sun-circle" cx="50" cy="50" r="40" fill="black" stroke="yellow" stroke-width="3"/>
+                <!-- Ogen -->
+                <circle id="eye-left" cx="35" cy="45" r="4" fill="black"/>
+                <circle id="eye-right" cx="65" cy="45" r="4" fill="black"/>
+                <!-- Glimlach -->
+                <path id="smile" d="M35 65 Q50 80 65 65" stroke="black" stroke-width="3" fill="transparent"/>
+            </svg>
+            <div id="lux-value">Sunlight = -- Lux</div>
+        </div>
+    </div>
 
-<h1>Zarlardinge Schuur - S-OUTSIDE Status</h1>
-
-<!-- Zonnetje boven luxwaarde -->
-<div id="sun-container">
-    <svg id="sun-svg" width="100" height="100">
-        <!-- Zon cirkel -->
-        <circle id="sun-circle" cx="50" cy="50" r="40" fill="black" stroke="yellow" stroke-width="3"/>
-        <!-- Ogen -->
-        <circle id="eye-left" cx="35" cy="45" r="4" fill="black"/>
-        <circle id="eye-right" cx="65" cy="45" r="4" fill="black"/>
-        <!-- Glimlach -->
-        <path id="smile" d="M35 65 Q50 80 65 65" stroke="black" stroke-width="3" fill="transparent"/>
-    </svg>
-</div>
-
-<div class="status-item"><span class="label">TSL-status</span>= <span id="status-TSL-status">Onbekend</span></div>
-<div class="status-item"><span class="label">Sunlight</span>= <span id="status-Sunlight">Onbekend</span></div>
-
-<div class="button-container">
-    <button class="update-button" onclick="fetchStatus()">Update!</button>
-    <a href="index.html" class="home-button">Home</a>
-</div>
+    <div class="button-container">
+        <button class="update-button" onclick="fetchStatus()">Update!</button>
+        <a href="index.html" class="home-button">Home</a>
+    </div>
 
 <script>
-    const particle = new Particle();
+const particle = new Particle();
+const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+const deviceId = '390028001147343339383037'; // S-OUTSIDE
 
-    function updateSunVisual(lux) {
-        const sunCircle = document.getElementById('sun-circle');
-        const sunContainer = document.getElementById('sun-container');
+function updateSunVisual(lux) {
+    const sunCircle = document.getElementById('sun-circle');
+    const sunContainer = document.getElementById('sun-container');
+    const luxValue = document.getElementById('lux-value');
 
-        // Zon kleur: 0 → 6000 lux
-        const maxLuxSun = 6000;
-        const clampedLuxSun = Math.min(Math.max(lux, 0), maxLuxSun);
-        const intensity = Math.round((clampedLuxSun / maxLuxSun) * 255);
-        sunCircle.setAttribute('fill', `rgb(${intensity},${intensity},0)`);
+    // Zon kleur: 0 → 6000 lux
+    const maxLuxSun = 6000;
+    const clampedLuxSun = Math.min(Math.max(lux, 0), maxLuxSun);
+    const intensity = Math.round((clampedLuxSun / maxLuxSun) * 255);
+    sunCircle.setAttribute('fill', `rgb(${intensity},${intensity},0)`);
 
-        // Glow-effect
-        sunCircle.setAttribute('filter', `drop-shadow(0 0 ${clampedLuxSun/200}px rgba(255,255,0,0.7))`);
+    // Glow effect
+    sunCircle.setAttribute('filter', `drop-shadow(0 0 ${clampedLuxSun/200}px rgba(255,255,0,0.7))`);
 
-        // Achtergrond vak: 0 lux = zwart, 2000 lux = hemelsblauw
-        const maxLuxBg = 2000;
-        const clampedLuxBg = Math.min(Math.max(lux, 0), maxLuxBg);
-        const r = Math.round((clampedLuxBg / maxLuxBg) * 135);
-        const g = Math.round((clampedLuxBg / maxLuxBg) * 206);
-        const b = Math.round((clampedLuxBg / maxLuxBg) * 235);
-        sunContainer.style.backgroundColor = `rgb(${r},${g},${b})`;
-    }
+    // Achtergrondvak: 0 lux = zwart, 2000 lux = hemelsblauw
+    const maxLuxBg = 2000;
+    const clampedLuxBg = Math.min(Math.max(lux, 0), maxLuxBg);
+    const r = Math.round((clampedLuxBg / maxLuxBg) * 135);
+    const g = Math.round((clampedLuxBg / maxLuxBg) * 206);
+    const b = Math.round((clampedLuxBg / maxLuxBg) * 235);
+    sunContainer.style.backgroundColor = `rgb(${r},${g},${b})`;
 
-    function fetchStatus() {
-        // Pas hier je deviceId en variabele aan
-        particle.getVariable({ deviceId: 'YOUR_DEVICE_ID', name: 'Sunlight' })
-            .then(data => {
-                const tslStatusElement = document.getElementById('status-TSL-status');
-                tslStatusElement.textContent = 'Onbekend'; // Vervang door echte TSL-status als nodig
+    // Lux waarde onder zon
+    luxValue.textContent = `Sunlight = ${lux} Lux`;
+}
 
-                const sunlightElement = document.getElementById('status-Sunlight');
-                if (data.body.result !== undefined) {
-                    const lux = Math.floor(data.body.result);
-                    sunlightElement.textContent = lux + ' LUX';
-                    updateSunVisual(lux);
-                } else {
-                    sunlightElement.textContent = 'Onbekend';
-                    updateSunVisual(0);
-                }
-            })
-            .catch(err => console.log(err));
-    }
+function fetchStatus() {
+    particle.getVariable({ deviceId: deviceId, name: 'Sunlight', auth: token })
+        .then(data => {
+            let lux = 0;
+            if (data && data.body && data.body.result !== undefined) {
+                lux = Math.floor(data.body.result);
+            }
+            updateSunVisual(lux);
+        })
+        .catch(err => {
+            console.error('Fout bij ophalen van Sunlight:', err);
+            updateSunVisual(0);
+        });
+}
 
-    // Initial fetch en interval
-    fetchStatus();
-    setInterval(fetchStatus, 10000); // elke 10s
+// Initial fetch en interval
+fetchStatus();
+setInterval(fetchStatus, 10000); // elke 10 seconden
 </script>
 
 </body>
