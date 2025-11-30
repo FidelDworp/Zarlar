@@ -1,51 +1,135 @@
-<div style="text-align:center; margin-top:20px;">
-  <div id="sun-container" style="display:inline-block; padding:20px; border-radius:10px; background-color:black;">
-    <svg id="sun-svg" width="120" height="120">
-      <!-- Zon cirkel -->
-      <circle id="sun-circle" cx="60" cy="60" r="50" fill="black" stroke="yellow" stroke-width="4"/>
-      <!-- Ogen -->
-      <circle id="eye-left" cx="45" cy="50" r="5" fill="black"/>
-      <circle id="eye-right" cx="75" cy="50" r="5" fill="black"/>
-      <!-- Glimlach -->
-      <path id="smile" d="M40 70 Q60 90 80 70" stroke="black" stroke-width="4" fill="transparent"/>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Zarlardinge Schuur - S-OUTSIDE Status</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-image: url('BG.jpg'); /* Jouw achtergrondfoto */
+        background-size: cover;
+        background-position: center;
+        color: black;
+        text-align: center;
+        padding: 20px;
+    }
+    h1 {
+        margin-bottom: 20px;
+    }
+    .status-item {
+        font-size: 18px;
+        margin: 5px 0;
+    }
+    .label {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .update-button, .home-button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        text-align: center;
+    }
+    .update-button:hover, .home-button:hover {
+        background-color: #0056b3;
+    }
+    /* Zon-container styling */
+    #sun-container {
+        display: inline-block;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        text-align: center;
+        transition: background-color 0.5s;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
+</head>
+<body>
+
+<h1>Zarlardinge Schuur - S-OUTSIDE Status</h1>
+
+<!-- Zonnetje boven luxwaarde -->
+<div id="sun-container">
+    <svg id="sun-svg" width="100" height="100">
+        <!-- Zon cirkel -->
+        <circle id="sun-circle" cx="50" cy="50" r="40" fill="black" stroke="yellow" stroke-width="3"/>
+        <!-- Ogen -->
+        <circle id="eye-left" cx="35" cy="45" r="4" fill="black"/>
+        <circle id="eye-right" cx="65" cy="45" r="4" fill="black"/>
+        <!-- Glimlach -->
+        <path id="smile" d="M35 65 Q50 80 65 65" stroke="black" stroke-width="3" fill="transparent"/>
     </svg>
-    <div id="lux-value" style="margin-top:10px; font-size:18px; font-weight:bold; color:black;">
-      Sunlight = -- Lux
-    </div>
-  </div>
+</div>
+
+<div class="status-item"><span class="label">TSL-status</span>= <span id="status-TSL-status">Onbekend</span></div>
+<div class="status-item"><span class="label">Sunlight</span>= <span id="status-Sunlight">Onbekend</span></div>
+
+<div class="button-container">
+    <button class="update-button" onclick="fetchStatus()">Update!</button>
+    <a href="index.html" class="home-button">Home</a>
 </div>
 
 <script>
-function updateSunlight(lux) {
-    const sunCircle = document.getElementById('sun-circle');
-    const luxDisplay = document.getElementById('lux-value');
-    const sunContainer = document.getElementById('sun-container');
+    const particle = new Particle();
 
-    // Zon kleur: 0 → zwart, 6000 → fel geel
-    const maxLuxSun = 6000;
-    const clampedLuxSun = Math.min(Math.max(lux, 0), maxLuxSun);
-    const intensity = Math.round((clampedLuxSun / maxLuxSun) * 255);
-    const fillColor = `rgb(${intensity}, ${intensity}, 0)`; 
-    sunCircle.setAttribute('fill', fillColor);
+    function updateSunVisual(lux) {
+        const sunCircle = document.getElementById('sun-circle');
+        const sunContainer = document.getElementById('sun-container');
 
-    // Glow-effect
-    sunCircle.setAttribute('filter', `drop-shadow(0 0 ${clampedLuxSun/200}px rgba(255,255,0,0.7))`);
+        // Zon kleur: 0 → 6000 lux
+        const maxLuxSun = 6000;
+        const clampedLuxSun = Math.min(Math.max(lux, 0), maxLuxSun);
+        const intensity = Math.round((clampedLuxSun / maxLuxSun) * 255);
+        sunCircle.setAttribute('fill', `rgb(${intensity},${intensity},0)`);
 
-    // Achtergrond van het vak: 0 lux = zwart, 2000 lux = hemelsblauw
-    const maxLuxBg = 2000;
-    const clampedLuxBg = Math.min(Math.max(lux, 0), maxLuxBg);
-    // Interpolatie tussen zwart (0,0,0) en hemelsblauw (#87CEEB = 135,206,235)
-    const r = Math.round((clampedLuxBg / maxLuxBg) * 135);
-    const g = Math.round((clampedLuxBg / maxLuxBg) * 206);
-    const b = Math.round((clampedLuxBg / maxLuxBg) * 235);
-    sunContainer.style.backgroundColor = `rgb(${r},${g},${b})`;
+        // Glow-effect
+        sunCircle.setAttribute('filter', `drop-shadow(0 0 ${clampedLuxSun/200}px rgba(255,255,0,0.7))`);
 
-    luxDisplay.textContent = `Sunlight = ${lux} Lux`;
-}
+        // Achtergrond vak: 0 lux = zwart, 2000 lux = hemelsblauw
+        const maxLuxBg = 2000;
+        const clampedLuxBg = Math.min(Math.max(lux, 0), maxLuxBg);
+        const r = Math.round((clampedLuxBg / maxLuxBg) * 135);
+        const g = Math.round((clampedLuxBg / maxLuxBg) * 206);
+        const b = Math.round((clampedLuxBg / maxLuxBg) * 235);
+        sunContainer.style.backgroundColor = `rgb(${r},${g},${b})`;
+    }
 
-// Polling voorbeeld: vervang window.Sunlight door jouw controller-variabele
-setInterval(() => {
-    const luxValueFromController = window.Sunlight || 0;
-    updateSunlight(luxValueFromController);
-}, 1000);
+    function fetchStatus() {
+        // Pas hier je deviceId en variabele aan
+        particle.getVariable({ deviceId: 'YOUR_DEVICE_ID', name: 'Sunlight' })
+            .then(data => {
+                const tslStatusElement = document.getElementById('status-TSL-status');
+                tslStatusElement.textContent = 'Onbekend'; // Vervang door echte TSL-status als nodig
+
+                const sunlightElement = document.getElementById('status-Sunlight');
+                if (data.body.result !== undefined) {
+                    const lux = Math.floor(data.body.result);
+                    sunlightElement.textContent = lux + ' LUX';
+                    updateSunVisual(lux);
+                } else {
+                    sunlightElement.textContent = 'Onbekend';
+                    updateSunVisual(0);
+                }
+            })
+            .catch(err => console.log(err));
+    }
+
+    // Initial fetch en interval
+    fetchStatus();
+    setInterval(fetchStatus, 10000); // elke 10s
 </script>
+
+</body>
+</html>
