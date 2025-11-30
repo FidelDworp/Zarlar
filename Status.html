@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Zarlardinge Diagnose</title>
+<title>Zarlardinge Schuur — Diagnose</title>
 <style>
   body {
     margin: 0;
@@ -86,10 +86,16 @@ async function loadData() {
     const res = await fetch('https://controllers-diagnose.filip-delannoy.workers.dev');
     const data = await res.json();
 
-    renderList(data.rooms, document.getElementById('rooms'));
-    renderList(data.system, document.getElementById('systems'));
+    // Scheid Rooms (R*) en System Sensors (S*)
+    const rooms = data.filter(d => d.name.startsWith('R'));
+    const systems = data.filter(d => d.name.startsWith('S'));
+
+    renderList(rooms, document.getElementById('rooms'));
+    renderList(systems, document.getElementById('systems'));
   } catch (e) {
     console.error(e);
+    document.getElementById('rooms').innerHTML = '<p>⚠️ Fout bij ophalen van diagnose.</p>';
+    document.getElementById('systems').innerHTML = '';
   }
 }
 
@@ -99,19 +105,23 @@ function renderList(list, container) {
     const card = document.createElement('div');
     card.className = 'device-card';
 
-    const online = item.online;
-    const minutes = (item.last_heard_minutes).toFixed(1);
+    const online = item.status === 'online';
+    const minutes = item.last_seen_minutes != null ? item.last_seen_minutes.toFixed(1) : '--';
+    const rssi = item.rssi ?? '--';
+    const firmware = item.firmware ?? '--';
 
     card.innerHTML = `
       <div class="name">${item.name}</div>
       <div class="${online ? 'status-online' : 'status-offline'}">${online ? 'online' : 'offline'}</div>
-      <div class="small">Wi-Fi: ${item.signal || '--'}</div>
+      <div class="small">Wi-Fi: ${rssi}</div>
       <div class="small">${minutes} min geleden</div>
+      <div class="small">Firmware: ${firmware}</div>
     `;
     container.appendChild(card);
   });
 }
 
+// Eerste keer laden + interval
 loadData();
 setInterval(loadData, 10000);
 </script>
