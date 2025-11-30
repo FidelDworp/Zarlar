@@ -1,188 +1,119 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>📟 Zarlardinge Schuur — Controllers Diagnose</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zarlardinge Diagnose</title>
 <style>
-    body {
-        margin: 0;
-        background: #111;
-        color: white;
-        font-family: system-ui, sans-serif;
-    }
-
-    header {
-        padding: 20px;
-        background: #222;
-        border-bottom: 2px solid #444;
-        text-align: center;
-        font-size: 1.4em;
-    }
-
-    .container {
-        padding: 20px;
-        max-width: 1200px;
-        margin: auto;
-    }
-
-    h2 {
-        margin-top: 30px;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #444;
-        padding-bottom: 6px;
-        font-size: 1.3em;
-    }
-
-    .device-card {
-        background: #1b1b1b;
-        padding: 12px 15px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-left: 6px solid #444;
-        transition: border-color 0.3s;
-    }
-
-    .name {
-        font-size: 1.2em;
-        font-weight: 600;
-    }
-
-    .status-online {
-        color: #0f0;
-        font-weight: bold;
-    }
-
-    .status-offline {
-        color: #f44;
-        font-weight: bold;
-    }
-
-    .rssi {
-        opacity: 0.8;
-    }
-
-    .lastseen {
-        opacity: 0.7;
-        font-size: 0.9em;
-    }
-
-    .device-card.online {
-        border-color: #0f0;
-    }
-
-    .device-card.offline {
-        border-color: #f44;
-    }
-
-    .error {
-        background: #400;
-        padding: 10px;
-        margin: 10px 0;
-        border-left: 6px solid red;
-        border-radius: 6px;
-    }
-
-    footer {
-        margin-top: 40px;
-        padding: 20px;
-        text-align: center;
-        opacity: 0.6;
-        font-size: 0.8em;
-    }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: url('BG.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+  }
+  .overlay {
+    background: rgba(0, 0, 0, 0.55);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    margin-top: 0;
+    font-size: 32px;
+  }
+  .section-title {
+    margin: 25px 0 10px;
+    font-size: 22px;
+    border-bottom: 1px solid #aaa;
+    padding-bottom: 5px;
+  }
+  .device-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+  }
+  .device-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  }
+  .name {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .status-online { color: #4adf4a; }
+  .status-offline { color: #ff5d5d; }
+  .small { font-size: 13px; opacity: 0.85; }
+  .home-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.45);
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 0 6px rgba(0,0,0,0.5);
+  }
 </style>
 </head>
-
 <body>
+<div class="overlay">
+  <a class="home-btn" href="index.html">🏠 Home</a>
+  <h1>📟 Zarlardinge Schuur — Diagnose</h1>
+  <p class="small" style="text-align:center;">Data via Worker: https://controllers-diagnose.filip-delannoy.workers.dev</p>
 
-<header>
-    📟 Zarlardinge Schuur — Controllers Diagnose
-</header>
+  <div id="rooms-section">
+    <div class="section-title">🏠 Rooms</div>
+    <div id="rooms" class="device-list"></div>
+  </div>
 
-<div class="container">
+  <div id="system-section">
+    <div class="section-title">⚙️ System Sensors</div>
+    <div id="systems" class="device-list"></div>
+  </div>
 
-    <p>
-        Deze pagina toont alle Photons met directe diagnose-informatie.<br>
-        Data wordt opgehaald via jouw Cloudflare Worker:<br>
-        <code>https://controllers-diagnose.filip-delannoy.workers.dev</code>
-    </p>
-
-    <div id="error-box"></div>
-
-    <h2>🏠 Rooms</h2>
-    <div id="rooms"></div>
-
-    <h2>⚙️ System Sensors</h2>
-    <div id="system"></div>
-
+  <p class="small" style="text-align:center;margin-top:30px;">Je Particle-token blijft veilig op de Worker — nooit in deze pagina.</p>
 </div>
 
-<footer>
-    Je Particle-token blijft veilig op de Worker — nooit in deze pagina.
-</footer>
-
 <script>
-async function loadDevices() {
-    const url = "https://controllers-diagnose.filip-delannoy.workers.dev";
-    const errorBox = document.getElementById("error-box");
-    const rooms = document.getElementById("rooms");
-    const system = document.getElementById("system");
+async function loadData() {
+  try {
+    const res = await fetch('https://controllers-diagnose.filip-delannoy.workers.dev');
+    const data = await res.json();
 
-    errorBox.innerHTML = "";
-
-    try {
-        const response = await fetch(url, {
-            headers: { "Accept": "application/json" },
-            cache: "no-cache"
-        });
-
-        if (!response.ok) {
-            throw new Error("HTTP " + response.status);
-        }
-
-        const devices = await response.json();  // <-- Worker returns array
-
-        rooms.innerHTML = "";
-        system.innerHTML = "";
-
-        devices.forEach(dev => {
-            const card = document.createElement("div");
-            card.className = "device-card " + (dev.status === "online" ? "online" : "offline");
-
-            card.innerHTML = `
-                <span class="name">${dev.name}</span>
-                <span class="status-${dev.status}">${dev.status}</span>
-                <span class="rssi">Wi-Fi: ${dev.rssi}</span>
-                <span class="lastseen">${dev.last_seen_minutes.toFixed(1)} min geleden</span>
-            `;
-
-            // categoriseren
-            if (dev.name.startsWith("R")) {
-                rooms.appendChild(card);
-            } else if (dev.name.startsWith("S")) {
-                system.appendChild(card);
-            }
-        });
-
-    } catch (err) {
-        console.error("FOUT:", err);
-
-        errorBox.innerHTML = `
-            <div class="error">
-                ⚠️ Fout bij ophalen van diagnose. Controleer de Worker of netwerkverbinding.
-            </div>
-        `;
-    }
+    renderList(data.rooms, document.getElementById('rooms'));
+    renderList(data.system, document.getElementById('systems'));
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-// automatische refresh
-setInterval(loadDevices, 5000);
-loadDevices();
-</script>
+function renderList(list, container) {
+  container.innerHTML = '';
+  list.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'device-card';
 
+    const online = item.online;
+    const minutes = (item.last_heard_minutes).toFixed(1);
+
+    card.innerHTML = `
+      <div class="name">${item.name}</div>
+      <div class="${online ? 'status-online' : 'status-offline'}">${online ? 'online' : 'offline'}</div>
+      <div class="small">Wi-Fi: ${item.signal || '--'}</div>
+      <div class="small">${minutes} min geleden</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+loadData();
+setInterval(loadData, 10000);
+</script>
 </body>
 </html>
