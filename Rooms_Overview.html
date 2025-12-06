@@ -36,9 +36,9 @@
         th {
             background-color: #f2f2f2;
             font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 2;
+            position: sticky; /* Maak de header sticky */
+            top: 0; /* Plak bovenaan bij verticaal scrollen */
+            z-index: 2; /* Zorg dat headers boven de cellen blijven */
         }
         td {
             background-color: #fff;
@@ -49,14 +49,14 @@
         .controller-name {
             font-weight: bold;
             text-align: left;
-            position: sticky;
-            left: 0;
-            background-color: #fff;
-            z-index: 1;
-            min-width: 100px;
+            position: sticky; /* Maak de eerste kolom sticky */
+            left: 0; /* Plak aan de linkerkant bij horizontaal scrollen */
+            background-color: #fff; /* Zorg voor een consistente achtergrond */
+            z-index: 1; /* Zorg dat deze boven andere cellen ligt, maar onder headers */
+            min-width: 100px; /* Geef een minimale breedte om te zorgen dat de naam leesbaar blijft */
         }
         tr:nth-child(even) .controller-name {
-            background-color: #f9f9f9;
+            background-color: #f9f9f9; /* Behoud de even/odd-kleuring */
         }
         .button-container {
             display: flex;
@@ -114,8 +114,6 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Jouw bestaande rijen blijven volledig ongewijzigd -->
-                <!-- Bijvoorbeeld R1-BandB -->
                 <tr id="R1-BandB">
                     <td class="controller-name">R1-BandB</td>
                     <td id="R1-BandB-v">Onbekend</td>
@@ -143,7 +141,168 @@
                     <td id="R1-BandB-t">Onbekend</td>
                     <td id="R1-BandB-u">Onbekend</td>
                 </tr>
-                <!-- Voeg hier alle andere controllers exact zoals in jouw pagina -->
+                <tr id="R2-BADK">
+                    <td class="controller-name">R2-BADK</td>
+                    <td id="R2-BADK-v">Onbekend</td>
+                    <td id="R2-BADK-w">Onbekend</td>
+                    <td id="R2-BADK-x">Onbekend</td>
+                    <td id="R2-BADK-g">Onbekend</td>
+                    <td id="R2-BADK-h">Onbekend</td>
+                    <td id="R2-BADK-d">Onbekend</td>
+                    <td id="R2-BADK-c">Onbekend</td>
+                    <td id="R2-BADK-k">Onbekend</td>
+                    <td id="R2-BADK-e">Onbekend</td>
+                    <td id="R2-BADK-b">Onbekend</td>
+                    <td id="R2-BADK-a">Onbekend</td>
+                    <td id="R2-BADK-l">Onbekend</td>
+                    <td id="R2-BADK-i">Onbekend</td>
+                    <td id="R2-BADK-m">Onbekend</td>
+                    <td id="R2-BADK-j">Onbekend</td>
+                    <td id="R2-BADK-n">Onbekend</td>
+                    <td id="R2-BADK-o">Onbekend</td>
+                    <td id="R2-BADK-p">Onbekend</td>
+                    <td id="R2-BADK-f">Onbekend</td>
+                    <td id="R2-BADK-q">Onbekend</td>
+                    <td id="R2-BADK-r">Onbekend</td>
+                    <td id="R2-BADK-s">Onbekend</td>
+                    <td id="R2-BADK-t">Onbekend</td>
+                    <td id="R2-BADK-u">Onbekend</td>
+                </tr>
+                <tr id="R3-INKOM">
+                    <td class="controller-name">R3-INKOM</td>
+                    <td id="R3-INKOM-v">Onbekend</td>
+                    <td id="R3-INKOM-w">Onbekend</td>
+                    <td id="R3-INKOM-x">Onbekend</td>
+                    <td id="R3-INKOM-g">Onbekend</td>
+                    <td id="R3-INKOM-h">Onbekend</td>
+                    <td id="R3-INKOM-d">Onbekend</td>
+                    <td id="R3-INKOM-c">Onbekend</td>
+                    <td id="R3-INKOM-k">Onbekend</td>
+                    <td id="R3-INKOM-e">Onbekend</td>
+                    <td id="R3-INKOM-b">Onbekend</td>
+                    <td id="R3-INKOM-a">Onbekend</td>
+                    <td id="R3-INKOM-l">Onbekend</td>
+                    <td id="R3-INKOM-i">Onbekend</td>
+                    <td id="R3-INKOM-m">Onbekend</td>
+                    <td id="R3-INKOM-j">Onbekend</td>
+                    <td id="R3-INKOM-n">Onbekend</td>
+                    <td id="R3-INKOM-o">Onbekend</td>
+                    <td id="R3-INKOM-p">Onbekend</td>
+                    <td id="R3-INKOM-f">Onbekend</td>
+                    <td id="R3-INKOM-q">Onbekend</td>
+                    <td id="R3-INKOM-r">Onbekend</td>
+                    <td id="R3-INKOM-s">Onbekend</td>
+                    <td id="R3-INKOM-t">Onbekend</td>
+                    <td id="R3-INKOM-u">Onbekend</td>
+                </tr>
+                <tr id="R4-KEUK">
+                    <td class="controller-name">R4-KEUK</td>
+                    <td id="R4-KEUK-v">Onbekend</td>
+                    <td id="R4-KEUK-w">Onbekend</td>
+                    <td id="R4-KEUK-x">Onbekend</td>
+                    <td id="R4-KEUK-g">Onbekend</td>
+                    <td id="R4-KEUK-h">Onbekend</td>
+                    <td id="R4-KEUK-d">Onbekend</td>
+                    <td id="R4-KEUK-c">Onbekend</td>
+                    <td id="R4-KEUK-k">Onbekend</td>
+                    <td id="R4-KEUK-e">Onbekend</td>
+                    <td id="R4-KEUK-b">Onbekend</td>
+                    <td id="R4-KEUK-a">Onbekend</td>
+                    <td id="R4-KEUK-l">Onbekend</td>
+                    <td id="R4-KEUK-i">Onbekend</td>
+                    <td id="R4-KEUK-m">Onbekend</td>
+                    <td id="R4-KEUK-j">Onbekend</td>
+                    <td id="R4-KEUK-n">Onbekend</td>
+                    <td id="R4-KEUK-o">Onbekend</td>
+                    <td id="R4-KEUK-p">Onbekend</td>
+                    <td id="R4-KEUK-f">Onbekend</td>
+                    <td id="R4-KEUK-q">Onbekend</td>
+                    <td id="R4-KEUK-r">Onbekend</td>
+                    <td id="R4-KEUK-s">Onbekend</td>
+                    <td id="R4-KEUK-t">Onbekend</td>
+                    <td id="R4-KEUK-u">Onbekend</td>
+                </tr>
+                <tr id="R5-WASPL">
+                    <td class="controller-name">R5-WASPL</td>
+                    <td id="R5-WASPL-v">Onbekend</td>
+                    <td id="R5-WASPL-w">Onbekend</td>
+                    <td id="R5-WASPL-x">Onbekend</td>
+                    <td id="R5-WASPL-g">Onbekend</td>
+                    <td id="R5-WASPL-h">Onbekend</td>
+                    <td id="R5-WASPL-d">Onbekend</td>
+                    <td id="R5-WASPL-c">Onbekend</td>
+                    <td id="R5-WASPL-k">Onbekend</td>
+                    <td id="R5-WASPL-e">Onbekend</td>
+                    <td id="R5-WASPL-b">Onbekend</td>
+                    <td id="R5-WASPL-a">Onbekend</td>
+                    <td id="R5-WASPL-l">Onbekend</td>
+                    <td id="R5-WASPL-i">Onbekend</td>
+                    <td id="R5-WASPL-m">Onbekend</td>
+                    <td id="R5-WASPL-j">Onbekend</td>
+                    <td id="R5-WASPL-n">Onbekend</td>
+                    <td id="R5-WASPL-o">Onbekend</td>
+                    <td id="R5-WASPL-p">Onbekend</td>
+                    <td id="R5-WASPL-f">Onbekend</td>
+                    <td id="R5-WASPL-q">Onbekend</td>
+                    <td id="R5-WASPL-r">Onbekend</td>
+                    <td id="R5-WASPL-s">Onbekend</td>
+                    <td id="R5-WASPL-t">Onbekend</td>
+                    <td id="R5-WASPL-u">Onbekend</td>
+                </tr>
+                <tr id="R6-EETPL">
+                    <td class="controller-name">R6-EETPL</td>
+                    <td id="R6-EETPL-v">Onbekend</td>
+                    <td id="R6-EETPL-w">Onbekend</td>
+                    <td id="R6-EETPL-x">Onbekend</td>
+                    <td id="R6-EETPL-g">Onbekend</td>
+                    <td id="R6-EETPL-h">Onbekend</td>
+                    <td id="R6-EETPL-d">Onbekend</td>
+                    <td id="R6-EETPL-c">Onbekend</td>
+                    <td id="R6-EETPL-k">Onbekend</td>
+                    <td id="R6-EETPL-e">Onbekend</td>
+                    <td id="R6-EETPL-b">Onbekend</td>
+                    <td id="R6-EETPL-a">Onbekend</td>
+                    <td id="R6-EETPL-l">Onbekend</td>
+                    <td id="R6-EETPL-i">Onbekend</td>
+                    <td id="R6-EETPL-m">Onbekend</td>
+                    <td id="R6-EETPL-j">Onbekend</td>
+                    <td id="R6-EETPL-n">Onbekend</td>
+                    <td id="R6-EETPL-o">Onbekend</td>
+                    <td id="R6-EETPL-p">Onbekend</td>
+                    <td id="R6-EETPL-f">Onbekend</td>
+                    <td id="R6-EETPL-q">Onbekend</td>
+                    <td id="R6-EETPL-r">Onbekend</td>
+                    <td id="R6-EETPL-s">Onbekend</td>
+                    <td id="R6-EETPL-t">Onbekend</td>
+                    <td id="R6-EETPL-u">Onbekend</td>
+                </tr>
+                <tr id="R7-ZITPL">
+                    <td class="controller-name">R7-ZITPL</td>
+                    <td id="R7-ZITPL-v">Onbekend</td>
+                    <td id="R7-ZITPL-w">Onbekend</td>
+                    <td id="R7-ZITPL-x">Onbekend</td>
+                    <td id="R7-ZITPL-g">Onbekend</td>
+                    <td id="R7-ZITPL-h">Onbekend</td>
+                    <td id="R7-ZITPL-d">Onbekend</td>
+                    <td id="R7-ZITPL-c">Onbekend</td>
+                    <td id="R7-ZITPL-k">Onbekend</td>
+                    <td id="R7-ZITPL-e">Onbekend</td>
+                    <td id="R7-ZITPL-b">Onbekend</td>
+                    <td id="R7-ZITPL-a">Onbekend</td>
+                    <td id="R7-ZITPL-l">Onbekend</td>
+                    <td id="R7-ZITPL-i">Onbekend</td>
+                    <td id="R7-ZITPL-m">Onbekend</td>
+                    <td id="R7-ZITPL-j">Onbekend</td>
+                    <td id="R7-ZITPL-n">Onbekend</td>
+                    <td id="R7-ZITPL-o">Onbekend</td>
+                    <td id="R7-ZITPL-p">Onbekend</td>
+                    <td id="R7-ZITPL-f">Onbekend</td>
+                    <td id="R7-ZITPL-q">Onbekend</td>
+                    <td id="R7-ZITPL-r">Onbekend</td>
+                    <td id="R7-ZITPL-s">Onbekend</td>
+                    <td id="R7-ZITPL-t">Onbekend</td>
+                    <td id="R7-ZITPL-u">Onbekend</td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -154,9 +313,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
     <script>
+        // Particle API initialiseren
         const particle = new Particle();
-        let token = null; // token wordt via worker opgehaald
+        const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
 
+        // Lijst van controllers met hun device ID's
         const controllers = [
             { name: 'R1-BandB', deviceId: '30002c000547343233323032' },
             { name: 'R2-BADK', deviceId: '5600420005504b464d323520' },
@@ -167,18 +328,96 @@
             { name: 'R7-ZITPL', deviceId: '410038000547353138383138' }
         ];
 
+        // Variabelen in de volgorde van de kolommen
         const variables = ['v', 'w', 'x', 'g', 'h', 'd', 'c', 'k', 'e', 'b', 'a', 'l', 'i', 'm', 'j', 'n', 'o', 'p', 'f', 'q', 'r', 's', 't', 'u'];
 
-        // Functies setCellColor en updateControllerStatus blijven volledig ongewijzigd
-        // (Plak hier de bestaande functies exact zoals in jouw pagina)
+        // Kleurregels per kolom (gebaseerd op de labels en jouw specificaties)
+        const columnRules = {
+            'Strength': { min: 0, max: 100, minColor: 'red', maxColor: 'green' }, // v
+            'Quality': { min: 0, max: 100, minColor: 'red', maxColor: 'green' }, // w
+            'FreeMem': { min: 0, max: 84, minColor: 'red', maxColor: 'green' }, // x
+            'Temp1': { min: 15, max: 25, minColor: 'blue', maxColor: 'red' }, // g
+            'Temp2': { min: 15, max: 25, minColor: 'blue', maxColor: 'red' }, // h
+            'Humi': { min: 0, max: 60, minColor: 'white', maxColor: 'blue' }, // d
+            'Dew': { special: true }, // c (speciale regel: vergelijking met Temp1)
+            'DewAlert': { min: 0, max: 1, minColor: 'green', maxColor: 'red' }, // k
+            'Light': { min: 0, max: 20, minColor: 'gray', maxColor: 'yellow' }, // e
+            'Dust': { min: 0, max: 100, minColor: 'white', maxColor: 'black' }, // b
+            'CO2': { min: 0, max: 800, minColor: 'white', maxColor: 'red' }, // a
+            'TSTATon': { min: 0, max: 1, minColor: 'white', maxColor: 'red' }, // l
+            'MOV1': { min: 0, max: 100, minColor: 'white', maxColor: 'black' }, // i
+            'MOV1light': { min: 0, max: 1, minColor: 'white', maxColor: 'yellow' }, // m
+            'MOV2': { min: 0, max: 100, minColor: 'white', maxColor: 'black' }, // j
+            'MOV2light': { min: 0, max: 1, minColor: 'white', maxColor: 'yellow' }, // n
+            'BEAMalert': { min: 0, max: 1, minColor: 'white', maxColor: 'yellow' }, // o
+            'BEAMlight': { min: 0, max: 1, minColor: 'white', maxColor: 'yellow' }, // p
+            'SUNLight': { min: 0, max: 5000, minColor: 'white', maxColor: 'yellow' }, // f
+            'Night': { min: 0, max: 1, minColor: 'white', maxColor: 'black' }, // q
+            'Bed': { min: 0, max: 1, minColor: 'white', maxColor: 'black' }, // r
+            'R': { min: 0, max: 255, minColor: 'white', maxColor: 'red' }, // s
+            'G': { min: 0, max: 255, minColor: 'white', maxColor: 'green' }, // t
+            'B': { min: 0, max: 255, minColor: 'white', maxColor: 'blue' } // u
+        };
 
-        function fetchStatus(controller) {
-            if (!token) {
-                console.error("Token nog niet beschikbaar");
-                return;
+        // Functie om RGB-waarde te interpoleren tussen twee kleuren
+        function interpolateColor(value, min, max, minColor, maxColor) {
+            if (value === 'Onbekend' || isNaN(parseFloat(value))) return '#ffffff'; // Wit als standaard bij ongeldige data
+
+            const ratio = Math.min(Math.max((parseFloat(value) - min) / (max - min), 0), 1);
+            const colorMap = {
+                'red': [255, 0, 0], 'green': [0, 255, 0], 'blue': [0, 0, 255],
+                'white': [255, 255, 255], 'black': [0, 0, 0], 'yellow': [255, 255, 0],
+                'gray': [128, 128, 128]
+            };
+
+            const c1 = colorMap[minColor] || [255, 255, 255];
+            const c2 = colorMap[maxColor] || [255, 255, 255];
+            const r = Math.round(c1[0] + (c2[0] - c1[0]) * ratio);
+            const g = Math.round(c1[1] + (c2[1] - c1[1]) * ratio);
+            const b = Math.round(c1[2] + (c2[2] - c1[2]) * ratio);
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Functie om de achtergrondkleur van een cel in te stellen
+        function setCellColor(element, value, columnName, temp1Value = null) {
+            if (columnName === 'Dew') {
+                if (temp1Value === null || value === 'Onbekend' || temp1Value === 'Onbekend') {
+                    element.style.backgroundColor = '#ffffff';
+                } else {
+                    element.style.backgroundColor = parseFloat(temp1Value) < parseFloat(value) ? 'red' : 'green';
+                }
+            } else {
+                const rule = columnRules[columnName];
+                if (!rule || value === 'Onbekend') {
+                    element.style.backgroundColor = '#ffffff';
+                } else {
+                    element.style.backgroundColor = interpolateColor(value, rule.min, rule.max, rule.minColor, rule.maxColor);
+                }
             }
+            // Zorg dat tekst leesbaar blijft door de tekstkleur aan te passen
+            const bgColor = element.style.backgroundColor;
+            const luminance = bgColor.match(/\d+/g) ? (0.299 * bgColor.match(/\d+/g)[0] + 0.587 * bgColor.match(/\d+/g)[1] + 0.114 * bgColor.match(/\d+/g)[2]) : 255;
+            element.style.color = luminance < 128 ? '#ffffff' : '#333';
+        }
+
+        // Functie om de status van een controller bij te werken
+        function updateControllerStatus(controllerName, data) {
+            const temp1Value = data['g'] !== undefined ? data['g'] : 'Onbekend'; // Temp1 waarde voor Dew-vergelijking
+            variables.forEach((variable, index) => {
+                const element = document.getElementById(`${controllerName}-${variable}`);
+                const columnName = Object.keys(columnRules)[index];
+                const value = data[variable] !== undefined ? data[variable] : 'Onbekend';
+                element.textContent = value;
+                setCellColor(element, value, columnName, columnName === 'Dew' ? temp1Value : null);
+            });
+        }
+
+        // Functie om de status van een controller op te halen
+        function fetchStatus(controller) {
             particle.getVariable({ deviceId: controller.deviceId, name: 'JSON_status', auth: token })
                 .then(data => {
+                    console.log(`API-respons voor ${controller.name}:`, data);
                     if (data && data.body && data.body.result) {
                         const jsonData = JSON.parse(data.body.result);
                         updateControllerStatus(controller.name, jsonData);
@@ -192,23 +431,15 @@
                 });
         }
 
+        // Haal de status op voor alle controllers
         function fetchAllStatuses() {
             controllers.forEach(controller => {
                 fetchStatus(controller);
             });
         }
 
-        // --- Token ophalen via worker en pas daarna status-fetch starten ---
-        fetch('/token')
-            .then(resp => resp.json())
-            .then(data => {
-                token = data.token;
-                console.log("Token ontvangen via worker:", token);
-                fetchAllStatuses(); // start ophalen
-            })
-            .catch(err => {
-                console.error("Fout bij ophalen token van worker:", err);
-            });
+        // Start de initiële ophaling bij het laden van de pagina
+        fetchAllStatuses();
     </script>
 </body>
 </html>
