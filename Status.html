@@ -16,6 +16,7 @@
     background: rgba(0, 0, 0, 0.55);
     min-height: 100vh;
     padding: 20px;
+    padding-bottom: 80px; /* ruimte voor homeknop */
   }
   h1 {
     text-align: center;
@@ -28,11 +29,14 @@
     border-bottom: 1px solid #aaa;
     padding-bottom: 5px;
   }
+
+  /* === Hier 2 per rij === */
   .device-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
+
   .device-card {
     background: rgba(255,255,255,0.08);
     border-radius: 10px;
@@ -47,23 +51,28 @@
   .status-online { color: #4adf4a; }
   .status-offline { color: #ff5d5d; }
   .small { font-size: 13px; opacity: 0.85; }
+
+  /* === Nieuwe blauwe homeknop onderaan === */
   .home-btn {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(0,0,0,0.45);
-    padding: 10px 14px;
-    border-radius: 8px;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #007BFF;
+    padding: 12px 22px;
+    border-radius: 10px;
     text-decoration: none;
     color: #fff;
     font-weight: bold;
-    box-shadow: 0 0 6px rgba(0,0,0,0.5);
+    font-size: 18px;
+    z-index: 9999;
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
   }
 </style>
 </head>
 <body>
 <div class="overlay">
-  <a class="home-btn" href="index.html">🏠 Home</a>
+
   <h1>📟 Controller Diagnose</h1>
   <p class="small" style="text-align:center;">Data via Worker: https://controllers-diagnose.filip-delannoy.workers.dev</p>
 
@@ -80,13 +89,15 @@
   <p class="small" style="text-align:center;margin-top:30px;">Je Particle-token blijft veilig op de Worker — nooit in deze pagina.</p>
 </div>
 
+<!-- Nieuwe knop -->
+<a class="home-btn" href="index.html">🏠 Home</a>
+
 <script>
 async function loadData() {
   try {
     const res = await fetch('https://controllers-diagnose.filip-delannoy.workers.dev');
     const data = await res.json();
 
-    // Scheid Rooms (R*) en System Sensors (S*)
     const rooms = data.filter(d => d.name.startsWith('R'));
     const systems = data.filter(d => d.name.startsWith('S'));
 
@@ -121,7 +132,6 @@ function renderList(list, container) {
   });
 }
 
-// Eerste keer laden + interval
 loadData();
 setInterval(loadData, 10000);
 </script>
