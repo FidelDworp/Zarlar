@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zarlardinge schuur</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    body {
+        background-image: url("BG.jpg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 20px;
+    }
+    button {
+        background-color: black;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 5px;
+        font-size: 10px;
+    }
+    button.on {
+        background-color: red;
+    }
+    button.active {
+        background-color: #007bff;
+    }
+    button.eco {
+        color: red;
+        font-weight: bold;
+        border: 2px solid red;
+    }
+    h1 {
+        font-size: 18px;
+        font-family: Arial, sans-serif;
+        color: #333;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .section-container {
+        background-color: rgba(128, 128, 128, 0.5);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+        margin-bottom: 20px;
+    }
+    .home-button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        text-align: center;
+    }
+    .home-button:hover {
+        background-color: #0056b3;
+    }
+    </style>
+</head>
+<body>
+    <div class="title">Zarlardinge - Schuur</div>
+
+    <div class="section-container">
+        <h1>Zitplaats</h1>
+        <button id="muurspots">Muurspots</button>
+        <button id="tvback">TV Backlight</button>
+        <button id="clocktime">Zomer/Winter</button>
+        <button id="clockbrightness">Helderheid</button>
+    </div>
+
+    <div class="section-container">
+        <h1>BandB</h1>
+        <button id="bandb">BandB licht</button>
+        <button id="buitentrap">Buitentrap</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Badkamer</h1>
+        <button id="badkamer">Badkamer</button>
+        <button id="leeslampjes">Leeslampjes</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Inkom</h1>
+        <button id="inkom">Inkom</button>
+        <button id="dressing">Dressing</button>
+        <button id="trapcolor">Trap</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Keuken</h1>
+        <button id="spots">Keuken spots, strips</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Wasplaats</h1>
+        <button id="wasplaats">Wasplaats</button>
+        <button id="toilet">Toilet,Vestiaire</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Eetplaats</h1>
+        <button id="ramenintensity">Ramen</button>
+        <button id="tafel">Tafel</button>
+        <button id="bib">Bib</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Slaapkamer</h1>
+        <button id="buro">Buro</button>
+        <button id="bed">Bed</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Buitenverlichting</h1>
+        <button id="S">Terras</button>
+        <button id="W2">Veldkant</button>
+        <button id="W1">Voordeur</button>
+    </div>
+
+    <div class="section-container">
+        <h1>Sunlight</h1>
+        <button id="sunlightmode">Mode</button>
+    </div>
+
+    <div class="section-container">
+        <h1>HVAC</h1>
+        <button id="hvacmode">Mode</button>
+        <button id="sch" class="eco">ECO => SCHUUR</button>
+        <button id="won" class="eco">ECO => WONING</button>
+    </div>
+
+    <div class="section-container">
+        <h1>ECO Solar</h1>
+        <button id="solar_pump">Pomp</button>
+    </div>
+
+    <div class="button-container">
+        <a href="index.html" class="home-button">Home</a>
+    </div>
+
+<script>
+const buttonStates = {};
+const multiStateButtons = {
+    clocktime: { states: ['summer', 'winter'], current: 0 },
+    clockbrightness: { states: ['h', 'm', 'l'], current: 0 },
+    trapcolor: { states: ['trapoff', 'trapon', 'traproodon', 'trapgroenon', 'trapblauwon'], current: 0 },
+    ramenintensity: { states: ['ramenlowoff', 'ramenhion', 'ramenmedon', 'ramenlowon'], current: 0 },
+    sunlightmode: { states: ['auto', 'day', 'night'], current: 0 },
+    hvacmode: { states: ['home', 'out'], current: 0 }
+};
+
+// === Nieuw: toggleLight via Worker ===
+function toggleLight(deviceId, command, parameter) {
+    fetch('https://controllers-diagnose.filip-delannoy.workers.dev/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId, command, parameter })
+    })
+    .then(res => res.json())
+    .then(resp => { if (!resp.success) console.error('Worker toggle failed', resp); })
+    .catch(err => console.error('Worker fetch error', err));
+}
+
+const controllers = [
+    { name: 'Zitplaats',      deviceId: '410038000547353138383138', command: 'manual', buttons: ['muurspots', 'tvback', 'clocktime', 'clockbrightness'] },
+    { name: 'BandB',          deviceId: '30002c000547343233323032', command: 'manual', buttons: ['bandb', 'buitentrap'] },
+    { name: 'Badkamer',       deviceId: '5600420005504b464d323520', command: 'manual', buttons: ['badkamer', 'leeslampjes'] },
+    { name: 'Inkom',          deviceId: '420035000e47343432313031', command: 'manual', buttons: ['inkom', 'dressing', 'trapcolor'] },
+    { name: 'Keuken',         deviceId: '310017001647373335333438', command: 'manual', buttons: ['spots'] },
+    { name: 'Wasplaats',      deviceId: '33004f000e504b464d323520', command: 'manual', buttons: ['wasplaats', 'toilet'] },
+    { name: 'Eetplaats',      deviceId: '210042000b47343432313031', command: 'manual', buttons: ['ramenintensity', 'tafel', 'bib'] },
+    { name: 'Slaapkamer',     deviceId: '210042000b47343432313031', command: 'manual', buttons: ['buro', 'bed'] },
+    { name: 'Buitenverlichting', deviceId: '2d0032001247333438353733', command: 'manual', buttons: ['S', 'W2', 'W1'] },
+    { name: 'Outside',        deviceId: '390028001147343339383037', command: 'manual', buttons: ['sunlightmode'] },
+    { name: 'HVAC',           deviceId: '3e003f001447343338333636', command: 'manual', buttons: ['hvacmode', 'sch', 'won'] },
+    { name: 'ECO Solar',      deviceId: '310049000f47343432313031', command: 'manual', buttons: ['solar_pump'] }
+];
+
+function updateButtonStates() {
+    controllers.forEach(controller => {
+        controller.buttons.forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (multiStateButtons[buttonId]) {
+                const stateInfo = multiStateButtons[buttonId];
+                const currentState = stateInfo.states[stateInfo.current];
+                button.classList.toggle('active', currentState !== 'trapoff' && currentState !== 'ramenlowoff');
+                if (buttonId === 'clocktime') button.textContent = currentState === 'summer' ? 'Zomeruur' : 'Winteruur';
+                else if (buttonId === 'clockbrightness') button.textContent = currentState === 'h' ? 'Helderheid: Hoog' : currentState === 'm' ? 'Helderheid: Medium' : 'Helderheid: Laag';
+                else if (buttonId === 'trapcolor') button.textContent = currentState === 'trapoff' ? 'Trap Uit' : currentState === 'trapon' ? 'Trap' : currentState === 'traproodon' ? 'Trap Rood' : currentState === 'trapgroenon' ? 'Trap Groen' : 'Trap Blauw';
+                else if (buttonId === 'ramenintensity') button.textContent = currentState === 'ramenlowoff' ? 'Ramen Uit' : currentState === 'ramenhion' ? 'Ramen Hoog' : currentState === 'ramenmedon' ? 'Ramen Medium' : 'Ramen Laag';
+                else if (buttonId === 'sunlightmode') button.textContent = currentState === 'auto' ? 'AUTO' : currentState === 'day' ? 'SLAPEN!' : 'TE DONKER!';
+                else if (buttonId === 'hvacmode') button.textContent = currentState === 'home' ? 'Home Mode' : 'Out Mode';
+            } else {
+                const isOn = buttonStates[buttonId] || false;
+                button.classList.toggle('on', isOn);
+            }
+        });
+    });
+}
+
+controllers.forEach(controller => {
+    const buttons = controller.buttons.map(id => document.getElementById(id));
+    buttons.forEach(button => {
+        const buttonId = button.id;
+        const deviceId = controller.deviceId;
+        const command = controller.command;
+
+        button.addEventListener('click', () => {
+            if (multiStateButtons[buttonId]) {
+                const stateInfo = multiStateButtons[buttonId];
+                stateInfo.current = (stateInfo.current + 1) % stateInfo.states.length;
+                const parameter = stateInfo.states[stateInfo.current];
+                toggleLight(deviceId, command, parameter);
+                updateButtonStates();
+            } else {
+                const lightName = buttonId;
+                const isOn = buttonStates[lightName] || false;
+                const newState = !isOn;
+                buttonStates[lightName] = newState;
+
+                const parameter = (buttonId === "solar_pump") ? (newState ? "on" : "off") : (newState ? `${lightName}on` : `${lightName}off`);
+                button.classList.toggle('on', newState);
+                toggleLight(deviceId, command, parameter);
+            }
+        });
+    });
+});
+
+updateButtonStates();
+</script>
+</body>
+</html>
