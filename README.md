@@ -1,1 +1,1 @@
-Collection of remote control files for our home automation, using Particle Photon controllers.
+Collection of remote control & monitoring files for our home automation WebApp, using Particle Photon controllers.
