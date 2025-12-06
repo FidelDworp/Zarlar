@@ -23,16 +23,17 @@
         }
         #sun-container {
             display: inline-block;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 12px;
             margin-bottom: 10px;
-            transition: background-color 0.5s;
+            transition: background-color 0.6s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         #lux-value {
-            margin-top: 10px;
-            font-size: 16px;
+            margin-top: 12px;
+            font-size: 18px;
             font-weight: bold;
-            color: black;
+            transition: color 0.6s ease;
         }
         .button-container {
             display: flex;
@@ -59,20 +60,24 @@
     <h1>Zarlardinge Schuur - S-OUTSIDE Status</h1>
     <div class="status-container">
         <div id="sun-container">
-            <svg id="sun-svg" width="100" height="100">
+            <svg id="sun-svg" width="120" height="120" viewBox="0 0 120 120">
                 <defs>
-                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
                         <feMerge>
                             <feMergeNode in="coloredBlur"/>
                             <feMergeNode in="SourceGraphic"/>
                         </feMerge>
                     </filter>
                 </defs>
-                <circle id="sun-circle" cx="50" cy="50" r="40" fill="black" stroke="yellow" stroke-width="3" filter="url(#glow)"/>
-                <circle id="eye-left" cx="35" cy="45" r="4" fill="black"/>
-                <circle id="eye-right" cx="65" cy="45" r="4" fill="black"/>
-                <path id="smile" d="M35 65 Q50 80 65 65" stroke="black" stroke-width="3" fill="transparent"/>
+                <!-- Zon met dynamische vulling + altijd zichtbare glow -->
+                <circle id="sun-circle" cx="60" cy="60" r="45" fill="#1a1a1a" stroke="#cccc00" stroke-width="4" filter="url(#glow)"/>
+                <!-- Oogjes + glimlach (altijd zichtbaar) -->
+                <circle cx="45" cy="55" r="5" fill="white"/>
+                <circle cx="75" cy="55" r="5" fill="white"/>
+                <circle cx="47" cy="57" r="2" fill="black"/>
+                <circle cx="77" cy="57" r="2" fill="black"/>
+                <path d="M40 75 Q60 95 80 75" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
             </svg>
             <div id="lux-value">Sunlight = -- Lux</div>
         </div>
@@ -81,10 +86,10 @@
         <button class="update-button" onclick="fetchStatus()">Update!</button>
         <a href="index.html" class="home-button">Home</a>
     </div>
-    <p id="version-timestamp">Versie: 2025-12-06 (token-vrij)</p>
+    <p id="version-timestamp">Versie: 2025-12-06 – Nachtmodus fixed!</p>
 
 <script>
-// TOKEN VEILIG OPHALEN VAN JE WORKER
+// TOKEN VEILIG OPHALEN
 let PARTICLE_TOKEN = null;
 async function getToken() {
     if (PARTICLE_TOKEN) return PARTICLE_TOKEN;
@@ -94,37 +99,42 @@ async function getToken() {
         PARTICLE_TOKEN = data.token;
         return PARTICLE_TOKEN;
     } catch (e) {
-        console.error("Kon token niet ophalen!", e);
+        console.error("Geen token", e);
         document.getElementById('lux-value').textContent = "Geen verbinding";
         return null;
     }
 }
 
-const deviceId = '390028001147343339383037'; // S-OUTSIDE
+const deviceId = '390028001147343339383037';
 
 function updateSunVisual(lux) {
     const sunCircle = document.getElementById('sun-circle');
     const sunContainer = document.getElementById('sun-container');
-    const luxValue = document.getElementById('lux-value');
-
-    const maxLuxSun = 6000;
-    const clampedLuxSun = Math.min(Math.max(lux, 0), maxLuxSun);
-    const intensity = Math.round((clampedLuxSun / maxLuxSun) * 255);
-    sunCircle.setAttribute('fill', `rgb(${intensity},${intensity},0)`);
-
-    // Glow effect (nu met echte SVG filter – mooier!)
+    const luxText = document.getElementById('lux-value');
     const glow = document.querySelector('#glow feGaussianBlur');
-    if (glow) glow.setAttribute('stdDeviation', clampedLuxSun / 200);
 
-    // Achtergrondkleur (0 = zwart → 2000 = hemelsblauw)
-    const maxLuxBg = 2000;
-    const clampedLuxBg = Math.min(Math.max(lux, 0), maxLuxBg);
-    const r = Math.round((clampedLuxBg / maxLuxBg) * 135);
-    const g = Math.round((clampedLuxBg / maxLuxBg) * 206);
-    const b = Math.round((clampedLuxBg / maxLuxBg) * 235);
-    sunContainer.style.backgroundColor = `rgb(${r},${g},${b})`;
+    // Zonvulling: 0 lux = donkergrijs, 6000 lux = felgeel
+    const intensity = Math.min(lux / 6000, 1);
+    const r = Math.round(30 + 225 * intensity);
+    const g = Math.round(30 + 225 * intensity);
+    const b = Math.round(0 + 50 * intensity);
+    sunCircle.setAttribute('fill', `rgb(${r},${g},${b})`);
 
-    luxValue.textContent = `Sunlight = ${lux} Lux`;
+    // Altijd zichtbare glow – sterker bij meer licht
+    const glowAmount = 3 + (lux / 200);
+    glow.setAttribute('stdDeviation', glowAmount);
+
+    // Achtergrond container: nachtblauw → daghemel
+    const bgIntensity = Math.min(lux / 2000, 1);
+    const bgR = Math.round(10 + 125 * bgIntensity);
+    const bgG = Math.round(20 + 186 * bgIntensity);
+    const bgB = Math.round(40 + 195 * bgIntensity);
+    sunContainer.style.backgroundColor = `rgb(${bgR},${bgG},${bgB})`;
+
+    // Tekstkleur: altijd goed leesbaar (wit op donker, zwart op licht)
+    const textColor = lux < 300 ? '#ffffff' : '#000000';
+    luxText.style.color = textColor;
+    luxText.textContent = `Sunlight = ${lux} Lux`;
 }
 
 async function fetchStatus() {
@@ -133,17 +143,17 @@ async function fetchStatus() {
 
     try {
         const resp = await fetch(`https://api.particle.io/v1/devices/${deviceId}/Sunlight?access_token=${token}`);
-        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        if (!resp.ok) throw new Error();
         const json = await resp.json();
         const lux = Math.floor(json.result ?? 0);
         updateSunVisual(lux);
     } catch (err) {
-        console.error('Fout bij ophalen van Sunlight:', err);
+        console.error("Fout sunlight", err);
         updateSunVisual(0);
     }
 }
 
-// Eerste keer tonen bij laden
+// Start meteen
 fetchStatus();
 </script>
 </body>
