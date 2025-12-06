@@ -13,10 +13,7 @@
             margin: 20px;
             text-align: center;
         }
-        h1 {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
+        h1 { font-size: 18px; margin-bottom: 20px; }
         .status-container {
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
@@ -54,25 +51,25 @@
             text-decoration: none;
             text-align: center;
         }
-        .update-button:hover, .home-button:hover {
-            background-color: #0056b3;
-        }
-        /* versie-timestamp styling */
-        #version-timestamp {
-            font-size: 10px;
-            color: #555;
-            margin-top: 10px;
-        }
+        .update-button:hover, .home-button:hover { background-color: #0056b3; }
+        #version-timestamp { font-size: 10px; color: #555; margin-top: 10px; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
 </head>
 <body>
     <h1>Zarlardinge Schuur - S-OUTSIDE Status</h1>
     <div class="status-container">
-        <!-- Zonnetje met dynamische kleur -->
         <div id="sun-container">
             <svg id="sun-svg" width="100" height="100">
-                <circle id="sun-circle" cx="50" cy="50" r="40" fill="black" stroke="yellow" stroke-width="3"/>
+                <defs>
+                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <circle id="sun-circle" cx="50" cy="50" r="40" fill="black" stroke="yellow" stroke-width="3" filter="url(#glow)"/>
                 <circle id="eye-left" cx="35" cy="45" r="4" fill="black"/>
                 <circle id="eye-right" cx="65" cy="45" r="4" fill="black"/>
                 <path id="smile" d="M35 65 Q50 80 65 65" stroke="black" stroke-width="3" fill="transparent"/>
@@ -80,17 +77,29 @@
             <div id="lux-value">Sunlight = -- Lux</div>
         </div>
     </div>
-
     <div class="button-container">
         <button class="update-button" onclick="fetchStatus()">Update!</button>
         <a href="index.html" class="home-button">Home</a>
     </div>
-
-    <p id="version-timestamp">Versie: 2025-11-30</p>
+    <p id="version-timestamp">Versie: 2025-12-06 (token-vrij)</p>
 
 <script>
-const particle = new Particle();
-const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+// TOKEN VEILIG OPHALEN VAN JE WORKER
+let PARTICLE_TOKEN = null;
+async function getToken() {
+    if (PARTICLE_TOKEN) return PARTICLE_TOKEN;
+    try {
+        const res = await fetch('https://controllers-diagnose.filip-delannoy.workers.dev/token');
+        const data = await res.json();
+        PARTICLE_TOKEN = data.token;
+        return PARTICLE_TOKEN;
+    } catch (e) {
+        console.error("Kon token niet ophalen!", e);
+        document.getElementById('lux-value').textContent = "Geen verbinding";
+        return null;
+    }
+}
+
 const deviceId = '390028001147343339383037'; // S-OUTSIDE
 
 function updateSunVisual(lux) {
@@ -98,16 +107,16 @@ function updateSunVisual(lux) {
     const sunContainer = document.getElementById('sun-container');
     const luxValue = document.getElementById('lux-value');
 
-    // Zon kleur: 0 → 6000 lux
     const maxLuxSun = 6000;
     const clampedLuxSun = Math.min(Math.max(lux, 0), maxLuxSun);
     const intensity = Math.round((clampedLuxSun / maxLuxSun) * 255);
     sunCircle.setAttribute('fill', `rgb(${intensity},${intensity},0)`);
 
-    // Glow effect
-    sunCircle.setAttribute('filter', `drop-shadow(0 0 ${clampedLuxSun/200}px rgba(255,255,0,0.7))`);
+    // Glow effect (nu met echte SVG filter – mooier!)
+    const glow = document.querySelector('#glow feGaussianBlur');
+    if (glow) glow.setAttribute('stdDeviation', clampedLuxSun / 200);
 
-    // Achtergrondvak: 0 lux = zwart, 2000 lux = hemelsblauw
+    // Achtergrondkleur (0 = zwart → 2000 = hemelsblauw)
     const maxLuxBg = 2000;
     const clampedLuxBg = Math.min(Math.max(lux, 0), maxLuxBg);
     const r = Math.round((clampedLuxBg / maxLuxBg) * 135);
@@ -115,27 +124,27 @@ function updateSunVisual(lux) {
     const b = Math.round((clampedLuxBg / maxLuxBg) * 235);
     sunContainer.style.backgroundColor = `rgb(${r},${g},${b})`;
 
-    // Lux waarde onder zon
     luxValue.textContent = `Sunlight = ${lux} Lux`;
 }
 
-function fetchStatus() {
-    particle.getVariable({ deviceId: deviceId, name: 'Sunlight', auth: token })
-        .then(data => {
-            let lux = 0;
-            if (data && data.body && data.body.result !== undefined) {
-                lux = Math.floor(data.body.result);
-            }
-            updateSunVisual(lux);
-        })
-        .catch(err => {
-            console.error('Fout bij ophalen van Sunlight:', err);
-            updateSunVisual(0);
-        });
+async function fetchStatus() {
+    const token = await getToken();
+    if (!token) return;
+
+    try {
+        const resp = await fetch(`https://api.particle.io/v1/devices/${deviceId}/Sunlight?access_token=${token}`);
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const json = await resp.json();
+        const lux = Math.floor(json.result ?? 0);
+        updateSunVisual(lux);
+    } catch (err) {
+        console.error('Fout bij ophalen van Sunlight:', err);
+        updateSunVisual(0);
+    }
 }
 
-// Alleen update bij knop-klik
+// Eerste keer tonen bij laden
+fetchStatus();
 </script>
-
 </body>
 </html>
