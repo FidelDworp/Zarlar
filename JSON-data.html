@@ -21,7 +21,6 @@
 </head>
 <body>
   <div class="title">Zarlardinge - Compact Kamer Status</div>
-
   <div class="buttons">
     <button class="btn" onclick="go('30002c000547343233323032','BandB')">BandB</button>
     <button class="btn" onclick="go('5600420005504b464d323520','Badkamer')">Badkamer</button>
@@ -31,21 +30,27 @@
     <button class="btn" onclick="go('210042000b47343432313031','Eetplaats')">Eetplaats</button>
     <button class="btn" onclick="go('410038000547353138383138','Zitplaats')">Zitplaats</button>
   </div>
-
   <div id="box"><div class="loading">Kies een kamer</div></div>
   <a class="home" href="index.html">Home</a>
 
 <script>
-/* ======= Config ======= */
-const token = 'ba9d9e1ed9f70cc5db24de2db21764a3a3afe28b';
+// ==== TOKEN VEILIG OPHALEN VAN JE WORKER ====
+let PARTICLE_TOKEN = null;
+async function getToken() {
+    if (PARTICLE_TOKEN) return PARTICLE_TOKEN;
+    try {
+        const res = await fetch('https://controllers-diagnose.filip-delannoy.workers.dev/token');
+        const data = await res.json();
+        PARTICLE_TOKEN = data.token;
+        return PARTICLE_TOKEN;
+    } catch (e) {
+        console.error("Kon token niet ophalen!", e);
+        alert("⚠️ Geen verbinding met de server – status kan niet opgehaald worden.");
+        return null;
+    }
+}
 
-/*
- Volgorde EXACT zoals jouw tabel
- Variabelen mapping (zoals in jouw originele script):
- variables = ['v','w','x','g','h','d','c','k','e','b','a','l','i','m','j','n','o','p','f','q','r','s','t','u'];
- Column names in order:
- ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"]
-*/
+// Rest van je originele configuratie (volledig ongewijzigd)
 const order = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
 const keyOf = {
   Strength: "v", Quality: "w", FreeMem: "x", Temp1: "g", Temp2: "h",
@@ -54,43 +59,20 @@ const keyOf = {
   BEAMalert: "o", BEAMlight: "p", SUNLight: "f", Night: "q", Bed: "r",
   R: "s", G: "t", B: "u"
 };
-
-/* exact jouw kleurregels (namen iets aangepast maar waarden identiek) */
-const rules = {
-  Strength:{min:0,max:100,minColor:'red',maxColor:'green'},
-  Quality:{min:0,max:100,minColor:'red',maxColor:'green'},
-  FreeMem:{min:0,max:84,minColor:'red',maxColor:'green'},
-  Temp1:{min:15,max:25,minColor:'blue',maxColor:'red'},
-  Temp2:{min:15,max:25,minColor:'blue',maxColor:'red'},
-  Humi:{min:0,max:60,minColor:'white',maxColor:'blue'},
-  Dew:{special:true},
-  DewAlert:{min:0,max:1,minColor:'green',maxColor:'red'},
-  Light:{min:0,max:20,minColor:'gray',maxColor:'yellow'},
-  Dust:{min:0,max:100,minColor:'white',maxColor:'black'},
-  CO2:{min:0,max:800,minColor:'white',maxColor:'red'},
-  TSTATon:{min:0,max:1,minColor:'white',maxColor:'red'},
-  MOV1:{min:0,max:100,minColor:'white',maxColor:'black'},
-  MOV1light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
-  MOV2:{min:0,max:100,minColor:'white',maxColor:'black'},
-  MOV2light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
-  BEAMalert:{min:0,max:1,minColor:'white',maxColor:'yellow'},
-  BEAMlight:{min:0,max:1,minColor:'white',maxColor:'yellow'},
-  SUNLight:{min:0,max:5000,minColor:'white',maxColor:'yellow'},
-  Night:{min:0,max:1,minColor:'white',maxColor:'black'},
-  Bed:{min:0,max:1,minColor:'white',maxColor:'black'},
-  R:{min:0,max:255,minColor:'white',maxColor:'red'},
-  G:{min:0,max:255,minColor:'white',maxColor:'green'},
-  B:{min:0,max:255,minColor:'white',maxColor:'blue'}
+const rules = { /* ... exact hetzelfde als voorheen, niets gewijzigd ... */ 
+  Strength:{min:0,max:100,minColor:'red',maxColor:'green'}, Quality:{min:0,max:100,minColor:'red',maxColor:'green'}, FreeMem:{min:0,max:84,minColor:'red',maxColor:'green'},
+  Temp1:{min:15,max:25,minColor:'blue',maxColor:'red'}, Temp2:{min:15,max:25,minColor:'blue',maxColor:'red'}, Humi:{min:0,max:60,minColor:'white',maxColor:'blue'},
+  Dew:{special:true}, DewAlert:{min:0,max:1,minColor:'green',maxColor:'red'}, Light:{min:0,max:20,minColor:'gray',maxColor:'yellow'},
+  Dust:{min:0,max:100,minColor:'white',maxColor:'black'}, CO2:{min:0,max:800,minColor:'white',maxColor:'red'}, TSTATon:{min:0,max:1,minColor:'white',maxColor:'red'},
+  MOV1:{min:0,max:100,minColor:'white',maxColor:'black'}, MOV1light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  MOV2:{min:0,max:100,minColor:'white',maxColor:'black'}, MOV2light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  BEAMalert:{min:0,max:1,minColor:'white',maxColor:'yellow'}, BEAMlight:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  SUNLight:{min:0,max:5000,minColor:'white',maxColor:'yellow'}, Night:{min:0,max:1,minColor:'white',maxColor:'black'},
+  Bed:{min:0,max:1,minColor:'white',maxColor:'black'}, R:{min:0,max:255,minColor:'white',maxColor:'red'},
+  G:{min:0,max:255,minColor:'white',maxColor:'green'}, B:{min:0,max:255,minColor:'white',maxColor:'blue'}
 };
+const cmap = { red:[255,0,0], green:[0,255,0], blue:[0,0,255], white:[255,255,255], black:[0,0,0], yellow:[255,255,0], gray:[128,128,128], orange:[255,165,0], purple:[128,0,128] };
 
-/* kleuren palet */
-const cmap = {
-  red:[255,0,0], green:[0,255,0], blue:[0,0,255],
-  white:[255,255,255], black:[0,0,0], yellow:[255,255,0],
-  gray:[128,128,128], orange:[255,165,0], purple:[128,0,128]
-};
-
-/* helper: interpolatie */
 function interpolateColor(value, min, max, minC, maxC){
   if (value === 'Onbekend' || value === null || value === undefined || isNaN(parseFloat(value))) return {bg:'#ffffff', txt:'#333'};
   const v = parseFloat(value);
@@ -106,62 +88,48 @@ function interpolateColor(value, min, max, minC, maxC){
   return {bg, txt};
 }
 
-/* color functie gebruikt rules incl. Dew special */
 function colorFor(value, columnName, temp1Value){
   if (value === null || value === undefined) value = 'Onbekend';
   const rule = rules[columnName];
   if (!rule) return {bg:'#ffffff', txt:'#333'};
   if (rule.special && columnName === 'Dew'){
-    // als Onbekend of temp1 ongeldige dan wit
     if (value === 'Onbekend' || temp1Value === 'Onbekend' || isNaN(parseFloat(value)) || isNaN(parseFloat(temp1Value))){
       return {bg:'#ffffff', txt:'#333'};
     }
     const v = parseFloat(value), t1 = parseFloat(temp1Value);
-    // rood als dew > temp1 (condensgevaar), anders groen
     if (v > t1) return {bg:'rgb(255,68,68)', txt:'#fff'};
     return {bg:'rgb(68,170,68)', txt:'#fff'};
   }
-  // gewone interpolatie
   return interpolateColor(value, rule.min, rule.max, rule.minColor, rule.maxColor);
 }
 
-/* veilige parse result: d.result kan - afhankelijk van device code - al geparsed JSON-string zijn of een string */
 function safeParseResult(resultField){
   if (resultField === undefined || resultField === null) return null;
-  if (typeof resultField === 'object') return resultField; // al object
+  if (typeof resultField === 'object') return resultField;
   if (typeof resultField === 'string'){
-    try {
-      // soms dubbele escaping: eerst decodeURIcomponent kan helpen, maar we proberen direct parse
-      return JSON.parse(resultField);
-    } catch(e){
-      // fallback: probeer URL-decode en parse
-      try { return JSON.parse(decodeURIComponent(resultField)); } catch(e2) { return null; }
-    }
+    try { return JSON.parse(resultField); }
+    catch(e){ try { return JSON.parse(decodeURIComponent(resultField)); } catch(e2) { return null; } }
   }
   return null;
 }
 
-/* main function: haal device variabele */
+// ==== AANGEPASTE go() functie met token ophalen ====
 async function go(deviceId, displayName){
   const box = document.getElementById('box');
   box.innerHTML = `<div class="loading">Laden ${displayName}…</div>`;
+  
+  const token = await getToken();
+  if (!token) {
+    box.innerHTML = `<div class="loading">⚠️ Geen toegang tot Particle-token</div>`;
+    return;
+  }
 
   try {
     const resp = await fetch(`https://api.particle.io/v1/devices/${deviceId}/JSON_status?access_token=${token}`, {cache:'no-store'});
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const d = await resp.json();
-    // d.result kan een string-met-json of al parsed zijn
     const parsed = safeParseResult(d.result ?? d.body?.result ?? null);
-    if (!parsed) {
-      // fallback: soms Particle SDK heeft resultaat in d.body.result like your previous code; try that
-      let alt = null;
-      try { alt = d.body && d.body.result ? JSON.parse(d.body.result) : null; } catch(e){}
-      if (alt) {
-        updateBoxWithData(box, displayName, alt);
-        return;
-      }
-      throw new Error('Kan JSON-status niet parsen (result leeg of onjuist)');
-    }
+    if (!parsed) throw new Error('Kan JSON-status niet parsen');
     updateBoxWithData(box, displayName, parsed);
   } catch(err){
     console.error('Fout bij ophalen:', err);
@@ -169,19 +137,13 @@ async function go(deviceId, displayName){
   }
 }
 
-/* update UI verticaal */
 function updateBoxWithData(boxElement, displayName, s){
-  // temp1 voor Dew vergelijking: volgens mapping Temp1 = key "g"
   const temp1 = (s && s['g'] !== undefined) ? s['g'] : 'Onbekend';
-
   let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:12px">${displayName} - Compact Status</h2>`;
   order.forEach(label=>{
     const key = keyOf[label];
     let v = (s && s[key] !== undefined) ? s[key] : 'Onbekend';
-    // als value is object probeer stringificatie kort
-    if (typeof v === 'object') {
-      try { v = JSON.stringify(v); } catch(e){ v = 'Onbekend'; }
-    }
+    if (typeof v === 'object') { try { v = JSON.stringify(v); } catch(e){ v = 'Onbekend'; } }
     const c = colorFor(v, label, temp1);
     html += `<div class="row"><span class="lbl">${label}:</span><span class="val" style="background:${c.bg};color:${c.txt}">${v}</span></div>`;
   });
