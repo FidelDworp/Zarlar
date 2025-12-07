@@ -1,1 +1,2 @@
-Collection of remote control & monitoring files for our home automation WebApp, using Particle Photon controllers.
+Remote control & monitoring files for our home automation WebApp, using Particle Photon controllers.
+My token is not used in these files, but served on request by a (JS) "worker" in Cloudflare...
