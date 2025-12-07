@@ -132,7 +132,7 @@ function updateSunVisual(lux) {
     sunContainer.style.backgroundColor = `rgb(${bgR},${bgG},${bgB})`;
 
     // Tekstkleur: altijd goed leesbaar (wit op donker, zwart op licht)
-    const textColor = lux < 300 ? '#ffffff' : '#000000';
+    const textColor = lux < 800 ? '#ffffff' : '#000000';
     luxText.style.color = textColor;
     luxText.textContent = `Sunlight = ${lux} Lux`;
 }
