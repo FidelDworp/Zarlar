@@ -10,7 +10,7 @@
   .buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px}
   .btn{padding:10px 16px;background:#007bff;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer}
   .btn:active{transform:translateY(1px)}
-  .esp-btn{padding:10px 16px;background:#28a745;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer} /* Groen voor ESP32 */
+  .esp-btn{padding:10px 16px;background:#28a745;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer}
   .esp-btn:active{transform:translateY(1px)}
   #box{max-width:520px;margin:18px auto;padding:18px;background:rgba(255,255,255,0.95);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.18)}
   .row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:14px}
@@ -33,7 +33,6 @@
     <button class="btn" onclick="go('410038000547353138383138','Zitplaats')">Zitplaats</button>
     <button class="btn" onclick="go('200033000547373336323230','TESTROOM')">TESTROOM (Photon)</button>
     
-    <!-- NIEUWE KNOP: Testroom ESP32 – haalt JSON van lokale ESP32 -->
     <button class="esp-btn" onclick="goESP32()">Testroom ESP32</button>
   </div>
   <div id="box"><div class="loading">Kies een kamer</div></div>
@@ -55,7 +54,7 @@ async function getToken() {
     }
 }
 
-// ==== BESTAANDE go() voor Particle devices (ongewijzigd) ====
+// ==== BESTAANDE go() voor Particle devices ====
 async function go(deviceId, displayName){
   const box = document.getElementById('box');
   box.innerHTML = `<div class="loading">Laden ${displayName}…</div>`;
@@ -87,18 +86,28 @@ async function goESP32() {
     const resp = await fetch('http://192.168.1.36/status.json', {cache: 'no-store'});
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-
-    // Jouw ESP32 JSON heeft exact dezelfde keys (a t/m x + det + up)
-    // Dus we kunnen dezelfde updateBoxWithData gebruiken!
     updateBoxWithData(box, "Testroom ESP32", data);
-
   } catch (err) {
     console.error('Fout bij ophalen ESP32:', err);
     box.innerHTML = `<div class="loading">Fout: ${err.message}<br>Ben je op het thuisnetwerk?</div>`;
   }
 }
 
-// ==== REST VAN JE ORIGINELE SCRIPT (volledig ongewijzigd) ====
+// ==== safeParseResult – TERUGGEZET! (was weggevallen) ====
+function safeParseResult(resultField){
+  if (resultField === undefined || resultField === null) return null;
+  if (typeof resultField === 'object') return resultField;
+  if (typeof resultField === 'string'){
+    try { return JSON.parse(resultField); }
+    catch(e){ 
+      try { return JSON.parse(decodeURIComponent(resultField)); } 
+      catch(e2) { return null; } 
+    }
+  }
+  return null;
+}
+
+// ==== REST VAN JE ORIGINELE CODE (volledig intact) ====
 const order = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
 const keyOf = {
   Strength: "v", Quality: "w", FreeMem: "x", Temp1: "g", Temp2: "h",
@@ -107,7 +116,49 @@ const keyOf = {
   BEAMalert: "o", BEAMlight: "p", SUNLight: "f", Night: "q", Bed: "r",
   R: "s", G: "t", B: "u"
 };
-// (rules, cmap, interpolateColor, colorFor, safeParseResult blijven 100% identiek – kopieer ze uit jouw originele code)
+const rules = { 
+  Strength:{min:0,max:100,minColor:'red',maxColor:'green'}, Quality:{min:0,max:100,minColor:'red',maxColor:'green'}, FreeMem:{min:0,max:84,minColor:'red',maxColor:'green'},
+  Temp1:{min:15,max:25,minColor:'blue',maxColor:'red'}, Temp2:{min:15,max:25,minColor:'blue',maxColor:'red'}, Humi:{min:0,max:60,minColor:'white',maxColor:'blue'},
+  Dew:{special:true}, DewAlert:{min:0,max:1,minColor:'green',maxColor:'red'}, Light:{min:0,max:20,minColor:'gray',maxColor:'yellow'},
+  Dust:{min:0,max:100,minColor:'white',maxColor:'black'}, CO2:{min:0,max:800,minColor:'white',maxColor:'red'}, TSTATon:{min:0,max:1,minColor:'white',maxColor:'red'},
+  MOV1:{min:0,max:100,minColor:'white',maxColor:'black'}, MOV1light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  MOV2:{min:0,max:100,minColor:'white',maxColor:'black'}, MOV2light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  BEAMalert:{min:0,max:1,minColor:'white',maxColor:'yellow'}, BEAMlight:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  SUNLight:{min:0,max:5000,minColor:'white',maxColor:'yellow'}, Night:{min:0,max:1,minColor:'white',maxColor:'black'},
+  Bed:{min:0,max:1,minColor:'white',maxColor:'black'}, R:{min:0,max:255,minColor:'white',maxColor:'red'},
+  G:{min:0,max:255,minColor:'white',maxColor:'green'}, B:{min:0,max:255,minColor:'white',maxColor:'blue'}
+};
+const cmap = { red:[255,0,0], green:[0,255,0], blue:[0,0,255], white:[255,255,255], black:[0,0,0], yellow:[255,255,0], gray:[128,128,128], orange:[255,165,0], purple:[128,0,128] };
+
+function interpolateColor(value, min, max, minC, maxC){
+  if (value === 'Onbekend' || value === null || value === undefined || isNaN(parseFloat(value))) return {bg:'#ffffff', txt:'#333'};
+  const v = parseFloat(value);
+  const ratio = Math.min(Math.max((v - min) / (max - min), 0), 1);
+  const c1 = cmap[minC] || cmap.white;
+  const c2 = cmap[maxC] || cmap.white;
+  const r = Math.round(c1[0] + (c2[0]-c1[0]) * ratio);
+  const g = Math.round(c1[1] + (c2[1]-c1[1]) * ratio);
+  const b = Math.round(c1[2] + (c2[2]-c1[2]) * ratio);
+  const bg = `rgb(${r},${g},${b})`;
+  const lum = 0.299*r + 0.587*g + 0.114*b;
+  const txt = lum < 128 ? '#ffffff' : '#222';
+  return {bg, txt};
+}
+
+function colorFor(value, columnName, temp1Value){
+  if (value === null || value === undefined) value = 'Onbekend';
+  const rule = rules[columnName];
+  if (!rule) return {bg:'#ffffff', txt:'#333'};
+  if (rule.special && columnName === 'Dew'){
+    if (value === 'Onbekend' || temp1Value === 'Onbekend' || isNaN(parseFloat(value)) || isNaN(parseFloat(temp1Value))){
+      return {bg:'#ffffff', txt:'#333'};
+    }
+    const v = parseFloat(value), t1 = parseFloat(temp1Value);
+    if (v > t1) return {bg:'rgb(255,68,68)', txt:'#fff'};
+    return {bg:'rgb(68,170,68)', txt:'#fff'};
+  }
+  return interpolateColor(value, rule.min, rule.max, rule.minColor, rule.maxColor);
+}
 
 function updateBoxWithData(boxElement, displayName, s){
   const temp1 = (s && s['g'] !== undefined) ? s['g'] : 'Onbekend';
