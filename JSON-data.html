@@ -83,7 +83,7 @@ async function goESP32() {
   box.innerHTML = `<div class="loading">Laden Testroom ESP32…</div>`;
 
   try {
-    const resp = await fetch('http://192.168.1.36/status.json', {cache: 'no-store'});
+    const resp = await fetch('http://eetplaats.local/status.json', {cache: 'no-store'});
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     updateBoxWithData(box, "Testroom ESP32", data);
