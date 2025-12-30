@@ -33,7 +33,7 @@
     <button class="btn" onclick="go('410038000547353138383138','Zitplaats')">Zitplaats</button>
     <button class="btn" onclick="go('200033000547373336323230','TESTROOM')">TESTROOM (Photon)</button>
     
-    <button class="esp-btn" onclick="goESP32()">Testroom ESP32</button>
+    <button class="esp-btn" onclick="goESP32()">eetplaats.local ESP32</button>
   </div>
   <div id="box"><div class="loading">Kies een kamer</div></div>
   <a class="home" href="index.html">Home</a>
@@ -86,7 +86,7 @@ async function goESP32() {
     const resp = await fetch('http://eetplaats.local/status.json', {cache: 'no-store'});
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-    updateBoxWithData(box, "Testroom ESP32", data);
+    updateBoxWithData(box, "eetplaats.local ESP32", data);
   } catch (err) {
     console.error('Fout bij ophalen ESP32:', err);
     box.innerHTML = `<div class="loading">Fout: ${err.message}<br>Ben je op het thuisnetwerk?</div>`;
