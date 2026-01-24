@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Zarlardinge - Compact Kamer Status (Gecorrigeerd)</title>
+<title>Zarlardinge - Compact Kamer Status (ESP32 Compatible)</title>
 <style>
   body{margin:0;font-family:Arial,Helvetica,sans-serif;background:url('BG.jpg') center/cover no-repeat;color:#222}
   .title{font-size:20px;font-weight:700;text-align:center;padding:18px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)}
@@ -12,6 +12,8 @@
   .btn:active{transform:translateY(1px)}
   .esp-btn{padding:10px 16px;background:#28a745;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer}
   .esp-btn:active{transform:translateY(1px)}
+  .hvac-btn{padding:10px 16px;background:#ff6600;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer}
+  .hvac-btn:active{transform:translateY(1px)}
   #box{max-width:520px;margin:18px auto;padding:18px;background:rgba(255,255,255,0.95);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.18)}
   .row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:14px}
   .lbl{font-weight:700;color:#1a5276;flex:0 0 130px}
@@ -24,6 +26,7 @@
 <body>
   <div class="title">Zarlardinge - Room Status</div>
   <div class="buttons">
+    <!-- Particle Photon Controllers -->
     <button class="btn" onclick="go('30002c000547343233323032','BandB')">BandB</button>
     <button class="btn" onclick="go('5600420005504b464d323520','Badkamer')">Badkamer</button>
     <button class="btn" onclick="go('420035000e47343432313031','Inkom')">Inkom</button>
@@ -33,14 +36,29 @@
     <button class="btn" onclick="go('410038000547353138383138','Zitplaats')">Zitplaats</button>
     <button class="btn" onclick="go('200033000547373336323230','TESTROOM')">TESTROOM (Photon)</button>
     
-    <button class="esp-btn" onclick="goESP32()">eco.local ESP32</button>
-    <button class="esp-btn" onclick="goESP32()">eetplaats.local ESP32</button>
+    <!-- ESP32 Controllers -->
+    <button class="esp-btn" onclick="goECO()">🌞 ECO boiler</button>
+    <button class="esp-btn" onclick="goTESTROOM()">🏠 TESTROOM ESP32</button>
+    
+    <!-- HVAC Controller (bonus!) -->
+    <button class="hvac-btn" onclick="goHVAC()">🔥 HVAC</button>
   </div>
   <div id="box"><div class="loading">Kies een kamer</div></div>
   <a class="home" href="index.html">Home</a>
 
 <script>
-// ==== TOKEN VEILIG OPHALEN (voor Particle) ====
+// ============================================================================
+// CONFIGURATION - PAS DEZE IPs AAN!
+// ============================================================================
+const ESP32_IPS = {
+  ECO: '192.168.1.99',        // ECO boiler
+  TESTROOM: '192.168.1.101',   // Eetplaats
+  HVAC: '192.168.1.100'        // Verwarming
+};
+
+// ============================================================================
+// TOKEN OPHALEN (voor Particle)
+// ============================================================================
 let PARTICLE_TOKEN = null;
 async function getToken() {
     if (PARTICLE_TOKEN) return PARTICLE_TOKEN;
@@ -55,7 +73,9 @@ async function getToken() {
     }
 }
 
-// ==== BESTAANDE go() voor Particle devices ====
+// ============================================================================
+// PARTICLE PHOTON CONTROLLERS (bestaande code - ongewijzigd)
+// ============================================================================
 async function go(deviceId, displayName){
   const box = document.getElementById('box');
   box.innerHTML = `<div class="loading">Laden ${displayName}…</div>`;
@@ -74,27 +94,10 @@ async function go(deviceId, displayName){
     updateBoxWithData(box, displayName, parsed);
   } catch(err){
     console.error('Fout bij ophalen:', err);
-    box.innerHTML = `<div class="loading">Fout bij laden: ${err.message}</div>`;
+    box.innerHTML = `<div class="loading">❌ Fout bij laden: ${err.message}</div>`;
   }
 }
 
-// ==== NIEUWE FUNCTIE: goESP32() voor lokale ESP32 ====
-async function goESP32() {
-  const box = document.getElementById('box');
-  box.innerHTML = `<div class="loading">Laden Testroom ESP32…</div>`;
-
-  try {
-    const resp = await fetch('http://eetplaats.local/status.json', {cache: 'no-store'});
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    updateBoxWithData(box, "eetplaats.local ESP32", data);
-  } catch (err) {
-    console.error('Fout bij ophalen ESP32:', err);
-    box.innerHTML = `<div class="loading">Fout: ${err.message}<br>Ben je op het thuisnetwerk?</div>`;
-  }
-}
-
-// ==== safeParseResult – TERUGGEZET! (was weggevallen) ====
 function safeParseResult(resultField){
   if (resultField === undefined || resultField === null) return null;
   if (typeof resultField === 'object') return resultField;
@@ -108,7 +111,124 @@ function safeParseResult(resultField){
   return null;
 }
 
-// ==== REST VAN JE ORIGINELE CODE (volledig intact) ====
+// ============================================================================
+// ESP32: ECO BOILER
+// ============================================================================
+async function goECO() {
+  const box = document.getElementById('box');
+  box.innerHTML = `<div class="loading">Laden ECO boiler…</div>`;
+
+  try {
+    const resp = await fetch(`http://${ESP32_IPs.ECO}/json`, {cache: 'no-store'});
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    
+    // Map ECO data naar Particle format
+    const mapped = {
+      'v': Math.abs(data.WiFiSig || 0),           // Strength (abs voor positief getal)
+      'w': Math.min(100, (Math.abs(data.WiFiSig || 0) + 100) * 2), // Quality
+      'x': data.Mem || 0,                         // FreeMem %
+      'g': data.Solar || 0,                       // Temp1 = Collector (Tsun)
+      'h': (data.ETopH + data.ETopL) / 2 || 0,   // Temp2 = Boiler top avg
+      'd': 0,                                      // Humi (niet beschikbaar)
+      'c': 0,                                      // Dew
+      'k': 0,                                      // DewAlert
+      'e': 0,                                      // Light
+      'b': 0,                                      // Dust
+      'a': 0,                                      // CO2
+      'l': data.Relay || 0,                       // TSTATon = Pump relay
+      'i': data.pwmVal || 0,                      // MOV1 = PWM value
+      'm': data.Relay || 0,                       // MOV1light = pump status
+      'j': 0,                                      // MOV2
+      'n': 0,                                      // MOV2light
+      'o': 0,                                      // BEAMalert
+      'p': 0,                                      // BEAMlight
+      'f': Math.round((data.EQtot || 0) * 100),  // SUNLight = Energy × 100
+      'q': 0,                                      // Night
+      'r': 0,                                      // Bed
+      's': Math.round((data.dT || 0) * 10),      // R = dT × 10 (voor kleuren)
+      't': Math.round((data.dEQ || 0) * 1000),   // G = dEQ × 1000
+      'u': Math.round((data.yield_today || 0) * 10) // B = Yield × 10
+    };
+    
+    updateBoxWithData(box, "🌞 ECO boiler", mapped);
+  } catch (err) {
+    console.error('Fout bij ECO:', err);
+    box.innerHTML = `<div class="loading">❌ Fout: ${err.message}<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>`;
+  }
+}
+
+// ============================================================================
+// ESP32: TESTROOM (Zitplaats)
+// ============================================================================
+async function goTESTROOM() {
+  const box = document.getElementById('box');
+  box.innerHTML = `<div class="loading">Laden TESTROOM ESP32…</div>`;
+
+  try {
+    const resp = await fetch(`http://${ESP32_IPs.TESTROOM}/json`, {cache: 'no-store'});
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    
+    // TESTROOM gebruikt AL de juiste keys (a, b, c, etc.)!
+    // Geen mapping nodig - direct gebruiken!
+    updateBoxWithData(box, "🏠 TESTROOM ESP32", data);
+  } catch (err) {
+    console.error('Fout bij TESTROOM:', err);
+    box.innerHTML = `<div class="loading">❌ Fout: ${err.message}<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>`;
+  }
+}
+
+// ============================================================================
+// ESP32: HVAC (BONUS!)
+// ============================================================================
+async function goHVAC() {
+  const box = document.getElementById('box');
+  box.innerHTML = `<div class="loading">Laden HVAC…</div>`;
+
+  try {
+    const resp = await fetch(`http://${ESP32_IPs.HVAC}/log_data`, {cache: 'no-store'});
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    
+    // Map HVAC data naar Particle format
+    const mapped = {
+      'v': 100,                                    // WiFi (altijd goed)
+      'w': 100,                                    // Quality
+      'x': 75,                                     // FreeMem (dummy)
+      'g': data.KSAv || 0,                        // Temp1 = Schoorsteen avg
+      'h': data.EAv || 0,                         // Temp2 = ECO boiler avg
+      'd': 0,                                      // Humi
+      'c': 0,                                      // Dew
+      'k': 0,                                      // DewAlert
+      'e': 0,                                      // Light
+      'b': 0,                                      // Dust
+      'a': 0,                                      // CO2
+      'l': data.R9 || 0,                          // TSTATon = Schoorsteen pump
+      'i': data.BB || 0,                          // MOV1 = BandB circuit
+      'm': data.R1 || 0,                          // MOV1light = BandB relay
+      'j': data.WP || 0,                          // MOV2 = Wasplaats circuit
+      'n': data.R2 || 0,                          // MOV2light = WP relay
+      'o': data.eco_online || 0,                  // BEAMalert = ECO online
+      'p': 0,                                      // BEAMlight
+      'f': Math.round((data.KSQtot || 0) * 100), // SUNLight = Schoorsteen energy
+      'q': 0,                                      // Night
+      'r': 0,                                      // Bed
+      's': Math.round((data.HeatDem || 0) * 10), // R = Heating demand × 10
+      't': data.Vent || 0,                        // G = Ventilation %
+      'u': Math.round((data.EQtot || 0) * 10)    // B = ECO energy × 10
+    };
+    
+    updateBoxWithData(box, "🔥 HVAC", mapped);
+  } catch (err) {
+    console.error('Fout bij HVAC:', err);
+    box.innerHTML = `<div class="loading">❌ Fout: ${err.message}<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>`;
+  }
+}
+
+// ============================================================================
+// DISPLAY LOGIC (ongewijzigd)
+// ============================================================================
 const order = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
 const keyOf = {
   Strength: "v", Quality: "w", FreeMem: "x", Temp1: "g", Temp2: "h",
@@ -163,7 +283,7 @@ function colorFor(value, columnName, temp1Value){
 
 function updateBoxWithData(boxElement, displayName, s){
   const temp1 = (s && s['g'] !== undefined) ? s['g'] : 'Onbekend';
-  let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:12px">${displayName} - Compact Status</h2>`;
+  let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:12px">${displayName}</h2>`;
   order.forEach(label=>{
     const key = keyOf[label];
     let v = (s && s[key] !== undefined) ? s[key] : 'Onbekend';
