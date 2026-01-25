@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Zarlardinge - Compact Kamer Status (ESP32 Compatible)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zarlardinge - Compact Kamer Status</title>
 <style>
   body{margin:0;font-family:Arial,Helvetica,sans-serif;background:url('BG.jpg') center/cover no-repeat;color:#222}
   .title{font-size:20px;font-weight:700;text-align:center;padding:18px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)}
@@ -26,7 +26,6 @@
 <body>
   <div class="title">Zarlardinge - Room Status</div>
   <div class="buttons">
-    <!-- Particle Photon Controllers -->
     <button class="btn" onclick="go('30002c000547343233323032','BandB')">BandB</button>
     <button class="btn" onclick="go('5600420005504b464d323520','Badkamer')">Badkamer</button>
     <button class="btn" onclick="go('420035000e47343432313031','Inkom')">Inkom</button>
@@ -36,35 +35,20 @@
     <button class="btn" onclick="go('410038000547353138383138','Zitplaats')">Zitplaats</button>
     <button class="btn" onclick="go('200033000547373336323230','TESTROOM')">TESTROOM (Photon)</button>
     
-    <!-- ESP32 Controllers -->
-    <button class="esp-btn" onclick="goECO()">🌞 ECO boiler</button>
-    <button class="esp-btn" onclick="goTESTROOM()">🏠 TESTROOM ESP32</button>
-    
-    <!-- HVAC Controller (bonus!) -->
-    <button class="hvac-btn" onclick="goHVAC()">🔥 HVAC</button>
+    <button class="esp-btn" onclick="goECO()">ECO boiler</button>
+    <button class="esp-btn" onclick="goTESTROOM()">TESTROOM ESP32</button>
+    <button class="hvac-btn" onclick="goHVAC()">HVAC</button>
   </div>
   <div id="box"><div class="loading">Kies een kamer</div></div>
   <a class="home" href="index.html">Home</a>
 
 <script>
-// ============================================================================
-// CONFIGURATION - PAS DEZE IPs AAN!
-// ============================================================================
-const ESP32_IPS = {
-  ECO: '192.168.1.99',        // ECO boiler
-  TESTROOM: '192.168.1.101',   // Eetplaats
-  HVAC: '192.168.1.100'        // Verwarming
-};
-
-// ============================================================================
-// TOKEN OPHALEN (voor Particle)
-// ============================================================================
-let PARTICLE_TOKEN = null;
+var PARTICLE_TOKEN = null;
 async function getToken() {
     if (PARTICLE_TOKEN) return PARTICLE_TOKEN;
     try {
-        const res = await fetch('https://controllers-diagnose.filip-delannoy.workers.dev/token');
-        const data = await res.json();
+        var res = await fetch('https://controllers-diagnose.filip-delannoy.workers.dev/token');
+        var data = await res.json();
         PARTICLE_TOKEN = data.token;
         return PARTICLE_TOKEN;
     } catch (e) {
@@ -73,28 +57,25 @@ async function getToken() {
     }
 }
 
-// ============================================================================
-// PARTICLE PHOTON CONTROLLERS (bestaande code - ongewijzigd)
-// ============================================================================
 async function go(deviceId, displayName){
-  const box = document.getElementById('box');
-  box.innerHTML = `<div class="loading">Laden ${displayName}…</div>`;
+  var box = document.getElementById('box');
+  box.innerHTML = '<div class="loading">Laden ' + displayName + '...</div>';
  
-  const token = await getToken();
+  var token = await getToken();
   if (!token) {
-    box.innerHTML = `<div class="loading">⚠️ Geen toegang tot Particle-token</div>`;
+    box.innerHTML = '<div class="loading">Geen toegang tot Particle-token</div>';
     return;
   }
   try {
-    const resp = await fetch(`https://api.particle.io/v1/devices/${deviceId}/JSON_status?access_token=${token}`, {cache:'no-store'});
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const d = await resp.json();
-    const parsed = safeParseResult(d.result ?? d.body?.result ?? null);
+    var resp = await fetch('https://api.particle.io/v1/devices/' + deviceId + '/JSON_status?access_token=' + token, {cache:'no-store'});
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var d = await resp.json();
+    var parsed = safeParseResult(d.result || (d.body && d.body.result) || null);
     if (!parsed) throw new Error('Kan JSON-status niet parsen');
     updateBoxWithData(box, displayName, parsed);
   } catch(err){
     console.error('Fout bij ophalen:', err);
-    box.innerHTML = `<div class="loading">❌ Fout bij laden: ${err.message}</div>`;
+    box.innerHTML = '<div class="loading">Fout bij laden: ' + err.message + '</div>';
   }
 }
 
@@ -111,170 +92,156 @@ function safeParseResult(resultField){
   return null;
 }
 
-// ============================================================================
-// ESP32: ECO BOILER
-// ============================================================================
 async function goECO() {
-  const box = document.getElementById('box');
-  box.innerHTML = `<div class="loading">Laden ECO boiler…</div>`;
+  var box = document.getElementById('box');
+  box.innerHTML = '<div class="loading">Laden ECO boiler...</div>';
 
   try {
-    const resp = await fetch(`http://${ESP32_IPs.ECO}/json`, {cache: 'no-store'});
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
+    var resp = await fetch('http://192.168.1.99/json', {cache: 'no-store'});
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var data = await resp.json();
     
-    // Map ECO data naar Particle format
-    const mapped = {
-      'v': Math.abs(data.WiFiSig || 0),           // Strength (abs voor positief getal)
-      'w': Math.min(100, (Math.abs(data.WiFiSig || 0) + 100) * 2), // Quality
-      'x': data.Mem || 0,                         // FreeMem %
-      'g': data.Solar || 0,                       // Temp1 = Collector (Tsun)
-      'h': (data.ETopH + data.ETopL) / 2 || 0,   // Temp2 = Boiler top avg
-      'd': 0,                                      // Humi (niet beschikbaar)
-      'c': 0,                                      // Dew
-      'k': 0,                                      // DewAlert
-      'e': 0,                                      // Light
-      'b': 0,                                      // Dust
-      'a': 0,                                      // CO2
-      'l': data.Relay || 0,                       // TSTATon = Pump relay
-      'i': data.pwmVal || 0,                      // MOV1 = PWM value
-      'm': data.Relay || 0,                       // MOV1light = pump status
-      'j': 0,                                      // MOV2
-      'n': 0,                                      // MOV2light
-      'o': 0,                                      // BEAMalert
-      'p': 0,                                      // BEAMlight
-      'f': Math.round((data.EQtot || 0) * 100),  // SUNLight = Energy × 100
-      'q': 0,                                      // Night
-      'r': 0,                                      // Bed
-      's': Math.round((data.dT || 0) * 10),      // R = dT × 10 (voor kleuren)
-      't': Math.round((data.dEQ || 0) * 1000),   // G = dEQ × 1000
-      'u': Math.round((data.yield_today || 0) * 10) // B = Yield × 10
+    var mapped = {
+      'v': Math.abs(data.WiFiSig || 0),
+      'w': Math.min(100, (Math.abs(data.WiFiSig || 0) + 100) * 2),
+      'x': data.Mem || 0,
+      'g': data.Solar || 0,
+      'h': ((data.ETopH || 0) + (data.ETopL || 0)) / 2,
+      'd': 0, 'c': 0, 'k': 0, 'e': 0, 'b': 0, 'a': 0,
+      'l': data.Relay || 0,
+      'i': data.pwmVal || 0,
+      'm': data.Relay || 0,
+      'j': 0, 'n': 0, 'o': 0, 'p': 0,
+      'f': Math.round((data.EQtot || 0) * 100),
+      'q': 0, 'r': 0,
+      's': Math.round((data.dT || 0) * 10),
+      't': Math.round((data.dEQ || 0) * 1000),
+      'u': Math.round((data.yield_today || 0) * 10)
     };
     
-    updateBoxWithData(box, "🌞 ECO boiler", mapped);
+    updateBoxWithData(box, 'ECO boiler', mapped);
   } catch (err) {
     console.error('Fout bij ECO:', err);
-    box.innerHTML = `<div class="loading">❌ Fout: ${err.message}<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>`;
+    box.innerHTML = '<div class="loading">Fout: ' + err.message + '<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>';
   }
 }
 
-// ============================================================================
-// ESP32: TESTROOM (Zitplaats)
-// ============================================================================
 async function goTESTROOM() {
-  const box = document.getElementById('box');
-  box.innerHTML = `<div class="loading">Laden TESTROOM ESP32…</div>`;
+  var box = document.getElementById('box');
+  box.innerHTML = '<div class="loading">Laden TESTROOM ESP32...</div>';
 
   try {
-    const resp = await fetch(`http://${ESP32_IPs.TESTROOM}/json`, {cache: 'no-store'});
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    
-    // TESTROOM gebruikt AL de juiste keys (a, b, c, etc.)!
-    // Geen mapping nodig - direct gebruiken!
-    updateBoxWithData(box, "🏠 TESTROOM ESP32", data);
+    var resp = await fetch('http://192.168.1.101/json', {cache: 'no-store'});
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var data = await resp.json();
+    updateBoxWithData(box, 'TESTROOM ESP32', data);
   } catch (err) {
     console.error('Fout bij TESTROOM:', err);
-    box.innerHTML = `<div class="loading">❌ Fout: ${err.message}<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>`;
+    box.innerHTML = '<div class="loading">Fout: ' + err.message + '<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>';
   }
 }
 
-// ============================================================================
-// ESP32: HVAC (BONUS!)
-// ============================================================================
 async function goHVAC() {
-  const box = document.getElementById('box');
-  box.innerHTML = `<div class="loading">Laden HVAC…</div>`;
+  var box = document.getElementById('box');
+  box.innerHTML = '<div class="loading">Laden HVAC...</div>';
 
   try {
-    const resp = await fetch(`http://${ESP32_IPs.HVAC}/log_data`, {cache: 'no-store'});
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
+    var resp = await fetch('http://192.168.1.100/log_data', {cache: 'no-store'});
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var data = await resp.json();
     
-    // Map HVAC data naar Particle format
-    const mapped = {
-      'v': 100,                                    // WiFi (altijd goed)
-      'w': 100,                                    // Quality
-      'x': 75,                                     // FreeMem (dummy)
-      'g': data.KSAv || 0,                        // Temp1 = Schoorsteen avg
-      'h': data.EAv || 0,                         // Temp2 = ECO boiler avg
-      'd': 0,                                      // Humi
-      'c': 0,                                      // Dew
-      'k': 0,                                      // DewAlert
-      'e': 0,                                      // Light
-      'b': 0,                                      // Dust
-      'a': 0,                                      // CO2
-      'l': data.R9 || 0,                          // TSTATon = Schoorsteen pump
-      'i': data.BB || 0,                          // MOV1 = BandB circuit
-      'm': data.R1 || 0,                          // MOV1light = BandB relay
-      'j': data.WP || 0,                          // MOV2 = Wasplaats circuit
-      'n': data.R2 || 0,                          // MOV2light = WP relay
-      'o': data.eco_online || 0,                  // BEAMalert = ECO online
-      'p': 0,                                      // BEAMlight
-      'f': Math.round((data.KSQtot || 0) * 100), // SUNLight = Schoorsteen energy
-      'q': 0,                                      // Night
-      'r': 0,                                      // Bed
-      's': Math.round((data.HeatDem || 0) * 10), // R = Heating demand × 10
-      't': data.Vent || 0,                        // G = Ventilation %
-      'u': Math.round((data.EQtot || 0) * 10)    // B = ECO energy × 10
+    var mapped = {
+      'v': 100, 'w': 100, 'x': 75,
+      'g': data.KSAv || 0,
+      'h': data.EAv || 0,
+      'd': 0, 'c': 0, 'k': 0, 'e': 0, 'b': 0, 'a': 0,
+      'l': data.R9 || 0,
+      'i': data.BB || 0,
+      'm': data.R1 || 0,
+      'j': data.WP || 0,
+      'n': data.R2 || 0,
+      'o': data.eco_online || 0,
+      'p': 0,
+      'f': Math.round((data.KSQtot || 0) * 100),
+      'q': 0, 'r': 0,
+      's': Math.round((data.HeatDem || 0) * 10),
+      't': data.Vent || 0,
+      'u': Math.round((data.EQtot || 0) * 10)
     };
     
-    updateBoxWithData(box, "🔥 HVAC", mapped);
+    updateBoxWithData(box, 'HVAC', mapped);
   } catch (err) {
     console.error('Fout bij HVAC:', err);
-    box.innerHTML = `<div class="loading">❌ Fout: ${err.message}<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>`;
+    box.innerHTML = '<div class="loading">Fout: ' + err.message + '<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>';
   }
 }
 
-// ============================================================================
-// DISPLAY LOGIC (ongewijzigd)
-// ============================================================================
-const order = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
-const keyOf = {
+var order = ["Strength","Quality","FreeMem","Temp1","Temp2","Humi","Dew","DewAlert","Light","Dust","CO2","TSTATon","MOV1","MOV1light","MOV2","MOV2light","BEAMalert","BEAMlight","SUNLight","Night","Bed","R","G","B"];
+var keyOf = {
   Strength: "v", Quality: "w", FreeMem: "x", Temp1: "g", Temp2: "h",
   Humi: "d", Dew: "c", DewAlert: "k", Light: "e", Dust: "b", CO2: "a",
   TSTATon: "l", MOV1: "i", MOV1light: "m", MOV2: "j", MOV2light: "n",
   BEAMalert: "o", BEAMlight: "p", SUNLight: "f", Night: "q", Bed: "r",
   R: "s", G: "t", B: "u"
 };
-const rules = { 
-  Strength:{min:0,max:100,minColor:'red',maxColor:'green'}, Quality:{min:0,max:100,minColor:'red',maxColor:'green'}, FreeMem:{min:0,max:84,minColor:'red',maxColor:'green'},
-  Temp1:{min:15,max:25,minColor:'blue',maxColor:'red'}, Temp2:{min:15,max:25,minColor:'blue',maxColor:'red'}, Humi:{min:0,max:60,minColor:'white',maxColor:'blue'},
-  Dew:{special:true}, DewAlert:{min:0,max:1,minColor:'green',maxColor:'red'}, Light:{min:0,max:20,minColor:'gray',maxColor:'yellow'},
-  Dust:{min:0,max:100,minColor:'white',maxColor:'black'}, CO2:{min:0,max:800,minColor:'white',maxColor:'red'}, TSTATon:{min:0,max:1,minColor:'white',maxColor:'red'},
-  MOV1:{min:0,max:100,minColor:'white',maxColor:'black'}, MOV1light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
-  MOV2:{min:0,max:100,minColor:'white',maxColor:'black'}, MOV2light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
-  BEAMalert:{min:0,max:1,minColor:'white',maxColor:'yellow'}, BEAMlight:{min:0,max:1,minColor:'white',maxColor:'yellow'},
-  SUNLight:{min:0,max:5000,minColor:'white',maxColor:'yellow'}, Night:{min:0,max:1,minColor:'white',maxColor:'black'},
-  Bed:{min:0,max:1,minColor:'white',maxColor:'black'}, R:{min:0,max:255,minColor:'white',maxColor:'red'},
-  G:{min:0,max:255,minColor:'white',maxColor:'green'}, B:{min:0,max:255,minColor:'white',maxColor:'blue'}
+var rules = { 
+  Strength:{min:0,max:100,minColor:'red',maxColor:'green'}, 
+  Quality:{min:0,max:100,minColor:'red',maxColor:'green'}, 
+  FreeMem:{min:0,max:84,minColor:'red',maxColor:'green'},
+  Temp1:{min:15,max:25,minColor:'blue',maxColor:'red'}, 
+  Temp2:{min:15,max:25,minColor:'blue',maxColor:'red'}, 
+  Humi:{min:0,max:60,minColor:'white',maxColor:'blue'},
+  Dew:{special:true}, 
+  DewAlert:{min:0,max:1,minColor:'green',maxColor:'red'}, 
+  Light:{min:0,max:20,minColor:'gray',maxColor:'yellow'},
+  Dust:{min:0,max:100,minColor:'white',maxColor:'black'}, 
+  CO2:{min:0,max:800,minColor:'white',maxColor:'red'}, 
+  TSTATon:{min:0,max:1,minColor:'white',maxColor:'red'},
+  MOV1:{min:0,max:100,minColor:'white',maxColor:'black'}, 
+  MOV1light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  MOV2:{min:0,max:100,minColor:'white',maxColor:'black'}, 
+  MOV2light:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  BEAMalert:{min:0,max:1,minColor:'white',maxColor:'yellow'}, 
+  BEAMlight:{min:0,max:1,minColor:'white',maxColor:'yellow'},
+  SUNLight:{min:0,max:5000,minColor:'white',maxColor:'yellow'}, 
+  Night:{min:0,max:1,minColor:'white',maxColor:'black'},
+  Bed:{min:0,max:1,minColor:'white',maxColor:'black'}, 
+  R:{min:0,max:255,minColor:'white',maxColor:'red'},
+  G:{min:0,max:255,minColor:'white',maxColor:'green'}, 
+  B:{min:0,max:255,minColor:'white',maxColor:'blue'}
 };
-const cmap = { red:[255,0,0], green:[0,255,0], blue:[0,0,255], white:[255,255,255], black:[0,0,0], yellow:[255,255,0], gray:[128,128,128], orange:[255,165,0], purple:[128,0,128] };
+var cmap = { 
+  red:[255,0,0], green:[0,255,0], blue:[0,0,255], 
+  white:[255,255,255], black:[0,0,0], yellow:[255,255,0], 
+  gray:[128,128,128], orange:[255,165,0], purple:[128,0,128] 
+};
 
 function interpolateColor(value, min, max, minC, maxC){
-  if (value === 'Onbekend' || value === null || value === undefined || isNaN(parseFloat(value))) return {bg:'#ffffff', txt:'#333'};
-  const v = parseFloat(value);
-  const ratio = Math.min(Math.max((v - min) / (max - min), 0), 1);
-  const c1 = cmap[minC] || cmap.white;
-  const c2 = cmap[maxC] || cmap.white;
-  const r = Math.round(c1[0] + (c2[0]-c1[0]) * ratio);
-  const g = Math.round(c1[1] + (c2[1]-c1[1]) * ratio);
-  const b = Math.round(c1[2] + (c2[2]-c1[2]) * ratio);
-  const bg = `rgb(${r},${g},${b})`;
-  const lum = 0.299*r + 0.587*g + 0.114*b;
-  const txt = lum < 128 ? '#ffffff' : '#222';
-  return {bg, txt};
+  if (value === 'Onbekend' || value === null || value === undefined || isNaN(parseFloat(value))) 
+    return {bg:'#ffffff', txt:'#333'};
+  var v = parseFloat(value);
+  var ratio = Math.min(Math.max((v - min) / (max - min), 0), 1);
+  var c1 = cmap[minC] || cmap.white;
+  var c2 = cmap[maxC] || cmap.white;
+  var r = Math.round(c1[0] + (c2[0]-c1[0]) * ratio);
+  var g = Math.round(c1[1] + (c2[1]-c1[1]) * ratio);
+  var b = Math.round(c1[2] + (c2[2]-c1[2]) * ratio);
+  var bg = 'rgb(' + r + ',' + g + ',' + b + ')';
+  var lum = 0.299*r + 0.587*g + 0.114*b;
+  var txt = lum < 128 ? '#ffffff' : '#222';
+  return {bg:bg, txt:txt};
 }
 
 function colorFor(value, columnName, temp1Value){
   if (value === null || value === undefined) value = 'Onbekend';
-  const rule = rules[columnName];
+  var rule = rules[columnName];
   if (!rule) return {bg:'#ffffff', txt:'#333'};
   if (rule.special && columnName === 'Dew'){
-    if (value === 'Onbekend' || temp1Value === 'Onbekend' || isNaN(parseFloat(value)) || isNaN(parseFloat(temp1Value))){
+    if (value === 'Onbekend' || temp1Value === 'Onbekend' || 
+        isNaN(parseFloat(value)) || isNaN(parseFloat(temp1Value))){
       return {bg:'#ffffff', txt:'#333'};
     }
-    const v = parseFloat(value), t1 = parseFloat(temp1Value);
+    var v = parseFloat(value), t1 = parseFloat(temp1Value);
     if (v > t1) return {bg:'rgb(255,68,68)', txt:'#fff'};
     return {bg:'rgb(68,170,68)', txt:'#fff'};
   }
@@ -282,15 +249,21 @@ function colorFor(value, columnName, temp1Value){
 }
 
 function updateBoxWithData(boxElement, displayName, s){
-  const temp1 = (s && s['g'] !== undefined) ? s['g'] : 'Onbekend';
-  let html = `<h2 style="text-align:center;color:#1a5276;margin-bottom:12px">${displayName}</h2>`;
-  order.forEach(label=>{
-    const key = keyOf[label];
-    let v = (s && s[key] !== undefined) ? s[key] : 'Onbekend';
-    if (typeof v === 'object') { try { v = JSON.stringify(v); } catch(e){ v = 'Onbekend'; } }
-    const c = colorFor(v, label, temp1);
-    html += `<div class="row"><span class="lbl">${label}:</span><span class="val" style="background:${c.bg};color:${c.txt}">${v}</span></div>`;
-  });
+  var temp1 = (s && s['g'] !== undefined) ? s['g'] : 'Onbekend';
+  var html = '<h2 style="text-align:center;color:#1a5276;margin-bottom:12px">' + displayName + '</h2>';
+  for (var i = 0; i < order.length; i++) {
+    var label = order[i];
+    var key = keyOf[label];
+    var v = (s && s[key] !== undefined) ? s[key] : 'Onbekend';
+    if (typeof v === 'object') { 
+      try { v = JSON.stringify(v); } 
+      catch(e){ v = 'Onbekend'; } 
+    }
+    var c = colorFor(v, label, temp1);
+    html += '<div class="row"><span class="lbl">' + label + 
+            ':</span><span class="val" style="background:' + c.bg + 
+            ';color:' + c.txt + '">' + v + '</span></div>';
+  }
   boxElement.innerHTML = html;
 }
 </script>
