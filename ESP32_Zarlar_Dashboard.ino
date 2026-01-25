@@ -3,9 +3,10 @@
  * Date: 24 jan 2026
  * 
  * Standalone webserver voor Zarlar dashboard
- * GEEN externe libraries nodig - gebruikt standaard ESP32WebServer!
+ * - Particle Photon: JSON fetch (zoals altijd)
+ * - ESP32 controllers: iFrame embedded UI
  * 
- * IP: http://192.168.1.3  mDNS: http://zarlar.local
+ * ACCESS: http://192.168.1.3/ of http://zarlar.local/
  */
 
 #include <WiFi.h>
@@ -18,10 +19,10 @@ const char* WIFI_SSID = "Delannoy";        // ← AANPASSEN!
 const char* WIFI_PASS = "kampendaal,34";  // ← AANPASSEN!
 const char* MDNS_NAME = "zarlar";          // → http://zarlar.local/
 
-// ESP32 Controller IPs (pas aan indien nodig)
-const char* ECO_IP = "192.168.1.99";
-const char* TESTROOM_IP = "192.168.1.101";
-const char* HVAC_IP = "192.168.1.100";
+// ESP32 Controller URLs (pas aan indien nodig)
+const char* ECO_URL = "http://192.168.1.99/";
+const char* TESTROOM_URL = "http://192.168.1.101/";
+const char* HVAC_URL = "http://192.168.1.100/";
 
 // ============== GLOBALS ==============
 WebServer server(80);
@@ -32,7 +33,8 @@ void setup() {
   delay(1000);
   
   Serial.println("\n\n╔══════════════════════════════╗");
-  Serial.println("║  ESP32 Zarlar Dashboard v1.0 ║");
+  Serial.println("║  ESP32 Zarlar Dashboard v1.1 ║");
+  Serial.println("║  iFrame Edition              ║");
   Serial.println("║  24 januari 2026             ║");
   Serial.println("╚══════════════════════════════╝\n");
   
@@ -101,7 +103,7 @@ void setupWebServer() {
   
   // Info endpoint (voor debugging)
   server.on("/info", HTTP_GET, []() {
-    String info = "ESP32 Zarlar Dashboard v1.0\n";
+    String info = "ESP32 Zarlar Dashboard v1.1\n";
     info += "═══════════════════════════\n";
     info += "IP: " + WiFi.localIP().toString() + "\n";
     info += "RSSI: " + String(WiFi.RSSI()) + " dBm\n";
@@ -130,7 +132,7 @@ body {font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-
 .header {text-align:center;padding:30px 20px;background:rgba(0,0,0,0.2)}
 .header h1 {font-size:32px;text-shadow:0 2px 4px rgba(0,0,0,0.3);margin-bottom:10px}
 .header p {opacity:0.9;font-size:14px}
-.container {max-width:900px;margin:0 auto;padding:20px}
+.container {max-width:1200px;margin:0 auto;padding:20px}
 .section {background:rgba(255,255,255,0.95);border-radius:12px;padding:20px;margin-bottom:20px;color:#222;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
 .section h2 {margin:0 0 15px 0;color:#667eea;font-size:20px;border-bottom:2px solid #667eea;padding-bottom:10px}
 .buttons {display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
@@ -144,6 +146,11 @@ body {font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-
 .btn-hvac {background:#ff6600}
 .btn-hvac:hover {background:#e65c00}
 #box {background:#fff;border-radius:8px;padding:20px;min-height:200px}
+.iframe-container {position:relative;width:100%;background:#fff;border-radius:8px;overflow:hidden}
+.iframe-header {background:#667eea;color:#fff;padding:15px;font-weight:600;font-size:18px;display:flex;justify-content:space-between;align-items:center}
+.iframe-close {background:rgba(255,255,255,0.2);border:none;color:#fff;padding:5px 15px;border-radius:5px;cursor:pointer;font-size:14px}
+.iframe-close:hover {background:rgba(255,255,255,0.3)}
+iframe {width:100%;height:700px;border:none;display:block}
 .row {display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
 .row:last-child {border-bottom:none}
 .lbl {font-weight:600;color:#667eea;flex:0 0 140px}
@@ -153,7 +160,7 @@ body {font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-
 @keyframes spin {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 .error {color:#dc3545;background:#ffe6e6;padding:15px;border-radius:8px;border-left:4px solid #dc3545}
 .success {color:#28a745;background:#e6f9e6;padding:15px;border-radius:8px;border-left:4px solid #28a745;margin-bottom:15px}
-@media(max-width:600px){.lbl{flex:0 0 100px;font-size:13px}.val{min-width:80px;font-size:13px}.buttons{grid-template-columns:1fr}}
+@media(max-width:600px){.lbl{flex:0 0 100px;font-size:13px}.val{min-width:80px;font-size:13px}.buttons{grid-template-columns:1fr}iframe{height:500px}}
 </style>
 </head>
 <body>
@@ -181,9 +188,9 @@ body {font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-
 <div class="section">
 <h2>🔧 ESP32 Controllers</h2>
 <div class="buttons">
-<button class="btn btn-esp" onclick="goESP32('http://ECO_IP/json','🌞 ECO Boiler')">🌞 ECO Boiler</button>
-<button class="btn btn-esp" onclick="goESP32('http://TESTROOM_IP/json','🏠 TESTROOM')">🏠 TESTROOM ESP32</button>
-<button class="btn btn-hvac" onclick="goESP32('http://HVAC_IP/log_data','🔥 HVAC')">🔥 HVAC</button>
+<button class="btn btn-esp" onclick="goESP32('ECO_URL','🌞 ECO Boiler')">🌞 ECO Boiler</button>
+<button class="btn btn-esp" onclick="goESP32('TESTROOM_URL','🏠 TESTROOM ESP32')">🏠 TESTROOM ESP32</button>
+<button class="btn btn-hvac" onclick="goESP32('HVAC_URL','🔥 HVAC')">🔥 HVAC</button>
 </div>
 </div>
 
@@ -201,6 +208,10 @@ Kies een controller hierboven
 
 <script>
 var TOKEN=null;
+
+// ============================================================================
+// PARTICLE PHOTON CONTROLLERS (zoals altijd)
+// ============================================================================
 async function getToken(){
 if(TOKEN)return TOKEN;
 try{
@@ -222,7 +233,7 @@ if(!r.ok)throw new Error('HTTP '+r.status);
 var d=await r.json();
 var p=parseResult(d.result||(d.body&&d.body.result)||null);
 if(!p)throw new Error('Parse error');
-show(box,name,p);
+showPhotonData(box,name,p);
 }catch(e){
 console.error('Error:',e);
 box.innerHTML='<div class="error">❌ Fout: '+e.message+'</div>';
@@ -240,21 +251,7 @@ try{return JSON.parse(decodeURIComponent(r))}catch(e2){return null}
 return null;
 }
 
-async function goESP32(url,name){
-var box=document.getElementById('box');
-box.innerHTML='<div class="loading"><div class="spinner"></div><br>Laden '+name+'...</div>';
-try{
-var r=await fetch(url,{cache:'no-store'});
-if(!r.ok)throw new Error('HTTP '+r.status);
-var d=await r.json();
-show(box,name,d);
-}catch(e){
-console.error('Error:',e);
-box.innerHTML='<div class="error">❌ Fout: '+e.message+'<br><small>Check netwerk verbinding</small></div>';
-}
-}
-
-function show(box,name,data){
+function showPhotonData(box,name,data){
 var h='<div class="success">✓ '+name+' - Verbonden</div>';
 for(var k in data){
 var v=data[k];
@@ -263,15 +260,34 @@ h+='<div class="row"><span class="lbl">'+k+':</span><span class="val">'+v+'</spa
 }
 box.innerHTML=h;
 }
+
+// ============================================================================
+// ESP32 CONTROLLERS (via iFrame)
+// ============================================================================
+function goESP32(url,name){
+var box=document.getElementById('box');
+box.innerHTML='<div class="iframe-container">'+
+'<div class="iframe-header">'+
+'<span>'+name+'</span>'+
+'<button class="iframe-close" onclick="closeFrame()">✕ Sluiten</button>'+
+'</div>'+
+'<iframe src="'+url+'" title="'+name+'"></iframe>'+
+'</div>';
+}
+
+function closeFrame(){
+var box=document.getElementById('box');
+box.innerHTML='<div class="loading">Kies een controller hierboven</div>';
+}
 </script>
 </body>
 </html>
 )rawliteral";
 
-  // Vervang IP placeholders
-  html.replace("ECO_IP", ECO_IP);
-  html.replace("TESTROOM_IP", TESTROOM_IP);
-  html.replace("HVAC_IP", HVAC_IP);
+  // Vervang URL placeholders
+  html.replace("ECO_URL", ECO_URL);
+  html.replace("TESTROOM_URL", TESTROOM_URL);
+  html.replace("HVAC_URL", HVAC_URL);
   
   return html;
 }
