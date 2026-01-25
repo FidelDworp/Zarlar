@@ -95,42 +95,40 @@ function safeParseResult(resultField){
   
 async function goECO() {
   var box = document.getElementById('box');
-  var VERSION = 'v2.0 - 24 jan 2026 16:45';
+  var VERSION = 'v2.1 - 24 jan 2026 17:15';
   
-  box.innerHTML = '<div class="loading">Laden ECO boiler...<br><small>' + VERSION + '</small></div>';
+  box.innerHTML = '<div class="loading">Testing...<br>' + VERSION + '</div>';
   
-  console.log('=== ECO TEST START ===');
+  console.log('=== SAFARI FETCH TEST ===');
   console.log('Versie:', VERSION);
-  console.log('Timestamp:', new Date().toLocaleTimeString());
-
+  
+  // TEST 1: Publieke URL (zou moeten werken)
+  console.log('TEST 1: Fetch naar publieke API...');
   try {
-    console.log('Stap 1: Fetch starten naar http://192.168.1.99/json');
-    
-    var resp = await fetch('http://192.168.1.99/json', {cache: 'no-store'});
-    
-    console.log('Stap 2: Response ontvangen');
-    console.log('Status:', resp.status);
-    console.log('OK?:', resp.ok);
-    
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    
-    console.log('Stap 3: JSON parsen...');
-    var data = await resp.json();
-    console.log('Stap 4: Data ontvangen:', data);
-    
-    box.innerHTML = '<div class="loading">SUCCESS!<br>' + VERSION + '<br>Data: ' + JSON.stringify(data).substring(0, 100) + '...</div>';
-    
-  } catch (err) {
-    console.error('ERROR:', err);
-    console.error('Error name:', err.name);
-    console.error('Error message:', err.message);
-    
-    box.innerHTML = '<div class="loading">❌ Fout: ' + err.message + 
-                    '<br><small>' + VERSION + '</small>' +
-                    '<br><small>Type: ' + err.name + '</small></div>';
+    var resp1 = await fetch('https://api.github.com/zen', {cache: 'no-store'});
+    console.log('TEST 1 SUCCESS! Status:', resp1.status);
+    var text1 = await resp1.text();
+    console.log('TEST 1 Data:', text1);
+  } catch(e1) {
+    console.error('TEST 1 FAILED:', e1.name, e1.message);
   }
+  
+  // TEST 2: Lokale IP (ESP32)
+  console.log('TEST 2: Fetch naar ESP32...');
+  try {
+    var resp2 = await fetch('http://192.168.1.99/json', {cache: 'no-store'});
+    console.log('TEST 2 SUCCESS! Status:', resp2.status);
+    var data2 = await resp2.json();
+    console.log('TEST 2 Data:', data2);
+    box.innerHTML = '<div class="loading">✅ WERKT!<br>' + VERSION + '<br>' + JSON.stringify(data2).substring(0,50) + '</div>';
+  } catch(e2) {
+    console.error('TEST 2 FAILED:', e2.name, e2.message);
+    box.innerHTML = '<div class="loading">❌ ESP32 Blocked<br>' + VERSION + '<br>Error: ' + e2.message + '</div>';
+  }
+  
+  console.log('=== TESTS DONE ===');
 }
-
+  
   
 async function goTESTROOM() {
   var box = document.getElementById('box');
