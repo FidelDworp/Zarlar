@@ -92,40 +92,46 @@ function safeParseResult(resultField){
   return null;
 }
 
+  
 async function goECO() {
   var box = document.getElementById('box');
-  box.innerHTML = '<div class="loading">Laden ECO boiler...</div>';
+  var VERSION = 'v2.0 - 24 jan 2026 16:45';
+  
+  box.innerHTML = '<div class="loading">Laden ECO boiler...<br><small>' + VERSION + '</small></div>';
+  
+  console.log('=== ECO TEST START ===');
+  console.log('Versie:', VERSION);
+  console.log('Timestamp:', new Date().toLocaleTimeString());
 
   try {
+    console.log('Stap 1: Fetch starten naar http://192.168.1.99/json');
+    
     var resp = await fetch('http://192.168.1.99/json', {cache: 'no-store'});
+    
+    console.log('Stap 2: Response ontvangen');
+    console.log('Status:', resp.status);
+    console.log('OK?:', resp.ok);
+    
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    
+    console.log('Stap 3: JSON parsen...');
     var data = await resp.json();
+    console.log('Stap 4: Data ontvangen:', data);
     
-    var mapped = {
-      'v': Math.abs(data.WiFiSig || 0),
-      'w': Math.min(100, (Math.abs(data.WiFiSig || 0) + 100) * 2),
-      'x': data.Mem || 0,
-      'g': data.Solar || 0,
-      'h': ((data.ETopH || 0) + (data.ETopL || 0)) / 2,
-      'd': 0, 'c': 0, 'k': 0, 'e': 0, 'b': 0, 'a': 0,
-      'l': data.Relay || 0,
-      'i': data.pwmVal || 0,
-      'm': data.Relay || 0,
-      'j': 0, 'n': 0, 'o': 0, 'p': 0,
-      'f': Math.round((data.EQtot || 0) * 100),
-      'q': 0, 'r': 0,
-      's': Math.round((data.dT || 0) * 10),
-      't': Math.round((data.dEQ || 0) * 1000),
-      'u': Math.round((data.yield_today || 0) * 10)
-    };
+    box.innerHTML = '<div class="loading">SUCCESS!<br>' + VERSION + '<br>Data: ' + JSON.stringify(data).substring(0, 100) + '...</div>';
     
-    updateBoxWithData(box, 'ECO boiler', mapped);
   } catch (err) {
-    console.error('Fout bij ECO:', err);
-    box.innerHTML = '<div class="loading">Fout: ' + err.message + '<br><small>Zorg dat je op het thuisnetwerk bent!</small></div>';
+    console.error('ERROR:', err);
+    console.error('Error name:', err.name);
+    console.error('Error message:', err.message);
+    
+    box.innerHTML = '<div class="loading">❌ Fout: ' + err.message + 
+                    '<br><small>' + VERSION + '</small>' +
+                    '<br><small>Type: ' + err.name + '</small></div>';
   }
 }
 
+  
 async function goTESTROOM() {
   var box = document.getElementById('box');
   box.innerHTML = '<div class="loading">Laden TESTROOM ESP32...</div>';
