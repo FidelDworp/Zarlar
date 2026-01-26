@@ -1,9 +1,9 @@
 /* ESP32 WROOM - Zarlar Dashboard Server
  * Author: Fidel Dworp
- * Date: 24 jan 2026
+ * Date: 26 jan 2026 21:00
  * 
  * Standalone webserver voor Zarlar dashboard
- * - Particle Photon: JSON fetch (zoals altijd)
+ * - Particle Photon: JSON fetch met correcte labels
  * - ESP32 controllers: iFrame embedded UI
  * 
  * ACCESS: http://192.168.1.3/ of http://zarlar.local/
@@ -19,13 +19,71 @@ const char* WIFI_SSID = "Delannoy";        // ← AANPASSEN!
 const char* WIFI_PASS = "kampendaal,34";  // ← AANPASSEN!
 const char* MDNS_NAME = "zarlar";          // → http://zarlar.local/
 
-// ESP32 Controller URLs (pas aan indien nodig)
-const char* ECO_URL = "http://192.168.1.99/";
-const char* TESTROOM_URL = "http://192.168.1.101/";
-const char* HVAC_URL = "http://192.168.1.100/";
+// ============== ESP32 CONTROLLER URLS ==============
+// Kies tussen IP of .local (of beide proberen)
+// TIP: Stel statische DHCP reservering in op je router voor beste resultaten
+
+// Optie 1: Statische IP adressen (werkt altijd, indien correct geconfigureerd)
+const char* ECO_URL_IP = "http://192.168.0.125/";      // Huidig DHCP adres
+const char* TESTROOM_URL_IP = "http://192.168.0.147/"; // Huidig DHCP adres  
+const char* HVAC_URL_IP = "http://192.168.0.212/";     // Huidig DHCP adres
+
+// Optie 2: Bonjour/mDNS namen (werkt niet in alle browsers!)
+const char* ECO_URL_MDNS = "http://eco.local/";
+const char* TESTROOM_URL_MDNS = "http://eetplaats.local/";
+const char* HVAC_URL_MDNS = "http://hvac.local/";
+
+// GEBRUIK DEZE (kies hieronder welke je wilt gebruiken)
+const char* ECO_URL = ECO_URL_IP;           // Verander naar ECO_URL_MDNS als je .local wilt
+const char* TESTROOM_URL = TESTROOM_URL_IP; // Verander naar TESTROOM_URL_MDNS als je .local wilt
+const char* HVAC_URL = HVAC_URL_IP;         // Verander naar HVAC_URL_MDNS als je .local wilt
 
 // ============== GLOBALS ==============
 WebServer server(80);
+
+// ============== PHOTON DATA LABELS ==============
+// Mapping van JSON keys naar leesbare labels
+struct LabelMap {
+  const char* key;
+  const char* label;
+};
+
+const LabelMap PHOTON_LABELS[] = {
+  {"datum", "Time"},
+  {"a", "CO2"},
+  {"b", "Dust"},
+  {"c", "Dew"},
+  {"d", "Humi"},
+  {"e", "Light"},
+  {"f", "SUNLight"},
+  {"g", "Temp1"},
+  {"h", "Temp2"},
+  {"i", "MOV1"},
+  {"j", "MOV2"},
+  {"k", "DewAlert"},
+  {"l", "TSTATon"},
+  {"m", "MOV1light"},
+  {"n", "MOV2light"},
+  {"o", "BEAMvalue"},
+  {"p", "BEAMalert"},
+  {"q", "Night"},
+  {"r", "Bed"},
+  {"s", "R"},
+  {"t", "G"},
+  {"u", "B"},
+  {"v", "Strength"},
+  {"w", "Quality"},
+  {"x", "FreeMem"}
+};
+
+String getLabel(String key) {
+  for (int i = 0; i < sizeof(PHOTON_LABELS) / sizeof(PHOTON_LABELS[0]); i++) {
+    if (key == PHOTON_LABELS[i].key) {
+      return String(PHOTON_LABELS[i].label);
+    }
+  }
+  return key; // Als geen label gevonden, return originele key
+}
 
 // ============== SETUP ==============
 void setup() {
@@ -253,11 +311,26 @@ return null;
 
 function showPhotonData(box,name,data){
 var h='<div class="success">✓ '+name+' - Verbonden</div>';
+
+
+
+// Label mapping (sync met ESP32 sketch)
+var labels={
+'datum':'Time','a':'CO2','b':'Dust','c':'Dew','d':'Humi','e':'Light',
+'f':'SUNLight','g':'Temp1','h':'Temp2','i':'MOV1','j':'MOV2',
+'k':'DewAlert','l':'TSTATon','m':'MOV1light','n':'MOV2light',
+'o':'BEAMvalue','p':'BEAMalert','q':'Night','r':'Bed','s':'R',
+'t':'G','u':'B','v':'Strength','w':'Quality','x':'FreeMem'
+};
 for(var k in data){
 var v=data[k];
+var lbl=labels[k]||k; // Gebruik label of originele key
 if(typeof v==='object'){try{v=JSON.stringify(v)}catch(e){v='Object'}}
-h+='<div class="row"><span class="lbl">'+k+':</span><span class="val">'+v+'</span></div>';
+h+='<div class="row"><span class="lbl">'+lbl+':</span><span class="val">'+v+'</span></div>';
 }
+
+
+
 box.innerHTML=h;
 }
 
